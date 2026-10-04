@@ -837,12 +837,11 @@ function EditToolbar(){
 
 const TEAM = {
   tech: {
-    label: "Tech Team Leads",
+    label: "Software Dev Team Leads",
     color: "#123a7a",
     blurb: "Transforms research into interactive digital formats — 3D CAD models, animations, and coded experiences — and manages the website and its distribution.",
     members: [
       { name: "Vaishnavi", role: "Tech Director", lead:true, bio: "Oversees all technical development at BioMation, from the CAD pipeline to the website itself, coordinating engineers, modelers, and developers." },
-      { name: "Imran", role: "CAD & 3D Modeler", bio: "Builds accurate 3D representations of organs, cells, and biological systems that form the foundation of every interactive model." },
       { name: "Aashika", role: "Animation Specialist", bio: "Creates visually engaging animations that turn static research and 3D models into compelling educational content." },
       { name: "Sanshray", role: "Software Developer / UI-UX Designer", bio: "Builds the web platforms, interactive apps, and simulations — making sure everything is user-friendly, educational, and visually clean." },
     ]
@@ -853,7 +852,7 @@ const TEAM = {
     blurb: "Collects and provides cutting-edge research across biological fields, simplifies findings for the visualization teams, and ensures every model and animation is scientifically accurate.",
     members: [
       { name: "Gagana", role: "Research Team Lead", lead:true, bio: "Oversees all research accuracy and direction across BioMation's projects, working across neuroscience, cardiology, genetics, and biomechanics to keep every visualization grounded in real science." },
-      { name: "Shivika", role: "Neurology Lead", bio: "Guides the neuroscience research pipeline, translating complex neural mechanisms into content the tech team can accurately model and animate." },
+      { name: "Shivika", role: "Neurology Lead", bio: "Guides the neuroscience research pipeline, translating complex neural mechanisms into content the software dev team can accurately model and animate." },
       { name: "Nitya", role: "Cardiology Lead", bio: "Leads cardiology research, ensuring the anatomy and function behind every heart model and simulation reflects current clinical understanding." },
       { name: "Adi", role: "Cell Biology Lead", bio: "Drives cell biology research, breaking down cellular structures and processes for the Cell Bio project and future genetics work." },
     ]
@@ -861,7 +860,7 @@ const TEAM = {
   outreach: {
     label: "Social Media Leads",
     color: "#8a1f34",
-    blurb: "Manages BioMation's public presence, turns research and tech work into engaging content, and builds relationships with schools, universities, and STEM communities.",
+    blurb: "Manages BioMation's public presence, turns research and software dev work into engaging content, and builds relationships with schools, universities, and STEM communities.",
     members: [
       { name: "Ria", role: "Social Media Manager", lead:true, bio: "Plans and schedules content, tracks engagement, and collaborates closely with the Tech and Research teams to keep messaging accurate and exciting." },
       { name: "Aarnav", role: "Social Media Manager", lead:true, bio: "Co-leads social strategy and outreach, coordinating workshops, webinars, and campaigns that connect BioMation with STEM communities." },
@@ -921,11 +920,10 @@ const PROJECTS = [
   },
 ];
 
-const FOUNDERS_STORY_DEFAULT = "BioMation was founded by Vaishnavi Kalyanashetty and Gagana Muralidhar to address a specific gap: biological research is often published in formats that are difficult for students and the public to access or understand. Vaishnavi leads the organization's technical development, and Gagana leads its research direction. Together, they built BioMation around a straightforward model: researchers translate current findings in fields like neuroscience and cardiology into clear, accurate summaries, and the technical team turns that material into interactive 3D models and simulations. What started as a small effort between the two of them has since grown into a full team spanning research, engineering, and outreach, with the same goal it started with — making biological research easier to see, explore, and understand.";
+const FOUNDERS_STORY_DEFAULT = "BioMation was founded by Vaishnavi Kalyanashetty and Gagana Muralidhar to address a specific gap: biological research is often published in formats that are difficult for students and the public to access or understand. Vaishnavi leads the organization's technical development, and Gagana leads its research direction. Together, they built BioMation around a straightforward model: researchers translate current findings in fields like neuroscience and cardiology into clear, accurate summaries, and the software dev team turns that material into interactive 3D models and simulations. What started as a small effort between the two of them has since grown into a full team spanning research, engineering, and outreach, with the same goal it started with — making biological research easier to see, explore, and understand.";
 
 const FULL_TEAM = [
   { name: "Vaishnavi Kalyanashetty", team: "Technology" },
-  { name: "Imran Durani", team: "Technology" },
   { name: "Sahana Ramkumar", team: "Technology" },
   { name: "Aashika Kumar", team: "Technology" },
   { name: "Sanshray Vakkalagadda", team: "Technology" },
@@ -935,7 +933,6 @@ const FULL_TEAM = [
   { name: "Riddhima Ghosh", team: "Research" },
   { name: "Adarshini Anand", team: "Research" },
   { name: "Adi Deodhar", team: "Research" },
-  { name: "Navya Verma", team: "Research" },
   { name: "Gurshan Singh", team: "Research" },
   { name: "Nitya Anand", team: "Research" },
   { name: "Shriya Raman", team: "Research" },
@@ -1370,14 +1367,14 @@ function Footer(){
         <div>
           <h5>Contact</h5>
           <ul>
-            <li><a href="mailto:hello@biomation.org">hello@biomation.org</a></li>
+            <li><a href="mailto:biomation12@gmail.com">biomation12@gmail.com</a></li>
             <li><a href="#/contact">Send a message →</a></li>
           </ul>
         </div>
       </div>
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} BioMation. A student-led organization.</span>
-        <span>Built by the BioMation Tech Team</span>
+        <span>Built by the BioMation Software Dev Team</span>
       </div>
     </footer>
   );
@@ -1490,14 +1487,14 @@ function About(){
             <div className="chain-link" aria-hidden="true">→</div>
             <div className="pillar pillar-big fade-up">
               <span className="tag">02 · Build</span>
-              <h4>Tech Team</h4>
+              <h4>Software Dev Team</h4>
               <p>Takes research input and transforms it into interactive digital formats: 3D CAD models, simulations, and animations, plus coded experiences like web apps and interactive tools — and manages the site itself.</p>
             </div>
             <div className="chain-link" aria-hidden="true">→</div>
             <div className="pillar pillar-big fade-up">
               <span className="tag">03 · Share</span>
               <h4>Social Media &amp; Outreach</h4>
-              <p>Manages BioMation's public presence, turns research and tech work into engaging posts and graphics, and builds connections with schools, universities, and STEM communities through workshops and webinars.</p>
+              <p>Manages BioMation's public presence, turns research and software dev work into engaging posts and graphics, and builds connections with schools, universities, and STEM communities through workshops and webinars.</p>
             </div>
           </div>
         </div>
@@ -1550,7 +1547,7 @@ function FullTeamGrid(){
       <div className="container">
         <div className="section-head fade-up">
           <div className="kicker">Meet the Full Team</div>
-          <h2>20 people, one mission.</h2>
+          <h2>18 people, one mission.</h2>
           <p>Every member of BioMation — color-coded by team: <span style={{color:teamColor("Technology"), fontWeight:700}}>Technology</span>, <span style={{color:teamColor("Research"), fontWeight:700}}>Research</span>, <span style={{color:teamColor("Social Media"), fontWeight:700}}>Social Media</span>.</p>
         </div>
         <div className="full-team-grid">
@@ -1761,17 +1758,17 @@ function Contact(){
           <div className="contact-grid">
             <div className="contact-info-card fade-up">
               <h3>Get in touch</h3>
-              <p>We're a student-led organization and love hearing from educators, students, and fellow builders.</p>
+              <p>We love hearing from educators, students, and fellow builders.</p>
               <div className="contact-row">
                 <div className="ico">✉</div>
-                <div><h5>Email</h5><p>hello@biomation.org</p></div>
+                <div><h5>Email</h5><p><a href="mailto:biomation12@gmail.com" style={{color:"inherit", textDecoration:"none"}}>biomation12@gmail.com</a></p></div>
               </div>
               <div className="contact-row">
-                <div className="ico">🎓</div>
-                <div><h5>For schools</h5><p>Ask about workshops &amp; webinars</p></div>
+                <div className="ico">📸</div>
+                <div><h5>Instagram</h5><p><a href="https://www.instagram.com/bio_mation1" target="_blank" rel="noopener noreferrer" style={{color:"inherit", textDecoration:"none"}}>@bio_mation1</a></p></div>
               </div>
               <div className="social-row">
-                <a href="#" title="Instagram">◎</a>
+                <a href="https://www.instagram.com/bio_mation1" target="_blank" rel="noopener noreferrer" title="Instagram">◎</a>
                 <a href="#" title="LinkedIn">in</a>
                 <a href="#" title="YouTube">▶</a>
               </div>
