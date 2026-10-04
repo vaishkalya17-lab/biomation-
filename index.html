@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BioMation — Visualizing Biology</title>
+<meta name="description" content="BioMation translates advanced biological research into interactive digital experiences." />
+
+<!-- React 18 -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Babel standalone for in-browser JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Three.js r128 + OrbitControls -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --navy:#0a1e42;
+    --blue-deep:#0d3b8c;
+    --blue:#1a5fd6;
+    --blue-bright:#2f7dff;
+    --blue-pale:#eaf1ff;
+    --ice:#f5f8ff;
+    --white:#ffffff;
+    --text:#0f1c33;
+    --text-soft:#4a5a78;
+    --line:#dce6f7;
+    --shadow:0 20px 50px -20px rgba(13,59,140,0.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    background:var(--white);
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4,.brand,.stat-num{font-family:'Space Grotesk',sans-serif;}
+  a{text-decoration:none;color:inherit;}
+  ::selection{background:var(--blue-bright);color:#fff;}
+
+  /* ---------- Loader ---------- */
+  #boot-loader{
+    position:fixed;inset:0;background:var(--navy);z-index:9999;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  #boot-loader .ring{
+    width:54px;height:54px;border-radius:50%;
+    border:3px solid rgba(255,255,255,0.15);
+    border-top-color:#4f8dff;
+    animation:spin 0.9s linear infinite;
+  }
+  #boot-loader p{color:#9fb8ec;font-family:'Space Grotesk',sans-serif;letter-spacing:.08em;font-size:13px;text-transform:uppercase;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- Nav ---------- */
+  header.site{
+    position:fixed;top:0;left:0;right:0;z-index:500;
+    background:rgba(255,255,255,0.82);
+    backdrop-filter:blur(14px) saturate(160%);
+    -webkit-backdrop-filter:blur(14px) saturate(160%);
+    border-bottom:1px solid var(--line);
+    transition:box-shadow .3s ease;
+  }
+  header.site.scrolled{box-shadow:0 6px 24px -12px rgba(13,59,140,0.18);}
+  .nav-inner{
+    max-width:1240px;margin:0 auto;padding:16px 32px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:22px;color:var(--navy);}
+  .brand .dot{
+    width:12px;height:12px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));
+    box-shadow:0 0 0 5px rgba(47,125,255,0.15);
+  }
+  nav.links{display:flex;gap:6px;align-items:center;}
+  nav.links a{
+    padding:9px 16px;border-radius:999px;font-size:14.5px;font-weight:500;
+    color:var(--text-soft);transition:all .25s ease;position:relative;
+  }
+  nav.links a:hover{color:var(--blue-deep);background:var(--blue-pale);}
+  nav.links a.active{color:#fff;background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));}
+  .mobile-toggle{display:none;background:none;border:none;font-size:24px;color:var(--navy);cursor:pointer;}
+
+  @media (max-width:860px){
+    nav.links{
+      position:fixed;top:64px;left:0;right:0;bottom:0;
+      flex-direction:column;background:#fff;padding:24px;gap:8px;
+      transform:translateX(100%);transition:transform .35s ease;
+    }
+    nav.links.open{transform:translateX(0);}
+    nav.links a{width:100%;text-align:center;padding:14px;font-size:17px;}
+    .mobile-toggle{display:block;}
+  }
+
+  main{padding-top:66px;}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;min-height:92vh;display:flex;align-items:center;
+    background:radial-gradient(circle at 20% 20%, #123a8a 0%, var(--navy) 55%, #060f24 100%);
+    overflow:hidden;color:#fff;
+  }
+  .hero-canvas{position:absolute;inset:0;opacity:.55;}
+  .hero-inner{
+    position:relative;z-index:2;max-width:1240px;margin:0 auto;padding:80px 32px;
+    display:grid;grid-template-columns:1.1fr 0.9fr;gap:40px;align-items:center;width:100%;
+  }
+  @media (max-width:900px){.hero-inner{grid-template-columns:1fr;}}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;
+    letter-spacing:.06em;text-transform:uppercase;
+    background:rgba(79,141,255,0.15);color:#8fb4ff;border:1px solid rgba(79,141,255,0.35);
+    margin-bottom:22px;
+  }
+  .hero h1{
+    font-size:clamp(40px,6vw,68px);line-height:1.05;font-weight:700;margin-bottom:22px;
+    background:linear-gradient(120deg,#ffffff, #bcd6ff 70%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero p.lead{font-size:18px;line-height:1.65;color:#c4d5f5;max-width:520px;margin-bottom:34px;}
+  .cta-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .btn{
+    padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px;cursor:pointer;
+    border:none;transition:all .25s ease;display:inline-flex;align-items:center;gap:8px;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));color:#fff;box-shadow:0 12px 30px -10px rgba(47,125,255,0.6);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 36px -8px rgba(47,125,255,0.75);}
+  .btn-ghost{background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.25);}
+  .btn-ghost:hover{background:rgba(255,255,255,0.16);}
+  .btn-light{background:#fff;color:var(--blue-deep);}
+  .btn-light:hover{transform:translateY(-2px);box-shadow:0 14px 30px -10px rgba(0,0,0,0.2);}
+  .btn-outline{background:transparent;border:1.5px solid var(--blue);color:var(--blue-deep);}
+  .btn-outline:hover{background:var(--blue-pale);}
+
+  .hero-visual{
+    position:relative;height:420px;border-radius:24px;overflow:hidden;
+    background:linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.15);
+  }
+
+  .stats-strip{
+    background:var(--navy);border-top:1px solid rgba(255,255,255,0.08);
+    display:grid;grid-template-columns:repeat(3,1fr);
+  }
+  .stat{padding:26px 12px;text-align:center;color:#fff;border-right:1px solid rgba(255,255,255,0.08);}
+  .stat:last-child{border-right:none;}
+  .stat-num{font-size:28px;font-weight:700;color:#8fb4ff;}
+  .stat-label{font-size:12.5px;color:#9fb0d4;margin-top:4px;letter-spacing:.03em;}
+  @media (max-width:700px){.stats-strip{grid-template-columns:repeat(3,1fr);}}
+
+  /* ---------- Sections generic ---------- */
+  section{padding:100px 32px;}
+  .container{max-width:1180px;margin:0 auto;}
+  .section-head{max-width:680px;margin-bottom:56px;}
+  .kicker{
+    color:var(--blue);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+    display:flex;align-items:center;gap:8px;margin-bottom:14px;
+  }
+  .kicker::before{content:'';width:26px;height:2px;background:var(--blue);display:inline-block;}
+  .section-head h2{font-size:clamp(28px,4vw,42px);font-weight:700;color:var(--navy);margin-bottom:16px;}
+  .section-head p{color:var(--text-soft);font-size:16.5px;line-height:1.7;}
+
+  .fade-up{opacity:0;transform:translateY(28px);transition:opacity .7s ease, transform .7s ease;}
+  .fade-up.in{opacity:1;transform:translateY(0);}
+
+  /* Vision/Mission cards */
+  .vm-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;}
+  @media (max-width:800px){.vm-grid{grid-template-columns:1fr;}}
+  .vm-card{
+    padding:38px;border-radius:20px;background:var(--ice);border:1px solid var(--line);
+    position:relative;overflow:hidden;transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .vm-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
+  .vm-card .icon{
+    width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));color:#fff;font-size:22px;margin-bottom:20px;
+  }
+  .vm-card h3{font-size:21px;color:var(--navy);margin-bottom:12px;}
+  .vm-card p{color:var(--text-soft);line-height:1.7;font-size:15.5px;}
+
+  /* Pillars */
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media (max-width:900px){.pillars{grid-template-columns:1fr;}}
+  .pillar{
+    padding:30px 26px;border-radius:18px;background:#fff;border:1px solid var(--line);
+    transition:all .3s ease;
+  }
+  .pillar:hover{border-color:var(--blue);box-shadow:var(--shadow);transform:translateY(-4px);}
+  .pillar .tag{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;}
+  .pillar h4{font-size:19px;color:var(--navy);margin:10px 0 10px;}
+  .pillar p{color:var(--text-soft);font-size:14.5px;line-height:1.6;}
+
+  /* Enlarged "chain" version of the pillars, used on the About page */
+  .pillars-chain{
+    display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:stretch;gap:0 18px;
+  }
+  @media (max-width:900px){.pillars-chain{grid-template-columns:1fr;gap:18px;}}
+  .pillar-big{padding:42px 34px;border-radius:22px;box-shadow:0 12px 34px -18px rgba(13,59,140,0.18);}
+  .pillar-big .tag{font-size:13px;}
+  .pillar-big h4{font-size:24px;margin:14px 0 14px;}
+  .pillar-big p{font-size:15.5px;line-height:1.75;}
+  .chain-link{
+    display:flex;align-items:center;justify-content:center;color:var(--blue-bright);
+    font-size:30px;font-weight:700;
+  }
+  @media (max-width:900px){
+    .chain-link{transform:rotate(90deg);font-size:24px;margin:-4px auto;}
+  }
+
+  /* ---------- Team ---------- */
+  .team-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:44px;}
+  .team-tab{
+    padding:10px 20px;border-radius:999px;border:1.5px solid var(--line);background:#fff;
+    font-weight:600;font-size:14px;cursor:pointer;color:var(--text-soft);transition:all .25s ease;
+  }
+  .team-tab.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .team-tab:hover{border-color:var(--blue);}
+  .team-group-desc{color:var(--text-soft);font-size:15px;margin-bottom:30px;max-width:640px;line-height:1.6;}
+  .team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;}
+  .member-card{
+    border-radius:20px;background:#fff;border:1px solid var(--line);overflow:hidden;
+    transition:all .35s ease;
+  }
+  .member-card:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:transparent;}
+  .member-photo{
+    height:150px;display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-size:40px;font-weight:700;color:#fff;
+    position:relative;
+  }
+  .member-body{padding:20px 22px 24px;}
+  .member-body h4{font-size:17.5px;color:var(--navy);margin-bottom:2px;}
+  .member-role{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:12px;}
+  .member-body p{font-size:14px;color:var(--text-soft);line-height:1.6;}
+  .member-lead{
+    display:inline-block;margin-top:12px;font-size:11px;font-weight:700;letter-spacing:.05em;
+    color:#fff;background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));
+    padding:4px 10px;border-radius:999px;text-transform:uppercase;
+  }
+
+  /* ---------- Projects ---------- */
+  .project-tabs{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:46px;}
+  .project-tab{
+    padding:12px 22px;border-radius:14px;border:1.5px solid var(--line);background:#fff;
+    cursor:pointer;font-weight:600;font-size:14.5px;color:var(--text-soft);
+    display:flex;align-items:center;gap:10px;transition:all .25s ease;
+  }
+  .project-tab .swatch{width:10px;height:10px;border-radius:50%;}
+  .project-tab.active{border-color:var(--blue);background:var(--blue-pale);color:var(--blue-deep);}
+  .project-tab:hover{border-color:var(--blue);}
+
+  .project-hero{
+    display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center;margin-bottom:64px;
+  }
+  @media (max-width:900px){.project-hero{grid-template-columns:1fr;}}
+  .project-status{
+    display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
+    padding:5px 12px;border-radius:999px;margin-bottom:16px;letter-spacing:.04em;text-transform:uppercase;
+  }
+  .status-active{background:#e4f7ea;color:#1c8a4a;}
+  .status-progress{background:#fff3de;color:#b9770e;}
+  .project-hero h2{font-size:clamp(30px,4vw,44px);color:var(--navy);margin-bottom:16px;}
+  .project-hero .abstract{color:var(--text-soft);font-size:16px;line-height:1.75;margin-bottom:24px;}
+  .field-badges{display:flex;gap:8px;flex-wrap:wrap;}
+  .field-badge{background:var(--blue-pale);color:var(--blue-deep);font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:999px;}
+
+  .viewer-wrap{
+    position:relative;border-radius:24px;overflow:hidden;
+    background:linear-gradient(155deg,#0d1f45,#0a1530);
+    border:1px solid var(--line);box-shadow:var(--shadow);height:420px;
+  }
+  .viewer-wrap canvas{display:block;width:100%!important;height:100%!important;}
+  .viewer-hint{
+    position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+    background:rgba(10,20,45,0.65);backdrop-filter:blur(6px);color:#cfe0ff;
+    font-size:12px;padding:7px 16px;border-radius:999px;letter-spacing:.02em;
+    display:flex;align-items:center;gap:6px;
+  }
+  .viewer-badge{
+    position:absolute;top:16px;left:16px;background:rgba(47,125,255,0.18);
+    border:1px solid rgba(79,141,255,0.4);color:#a9c6ff;font-size:11.5px;font-weight:700;
+    padding:5px 12px;border-radius:999px;letter-spacing:.05em;text-transform:uppercase;
+  }
+
+  .subsection-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:8px;}
+  @media (max-width:900px){.subsection-grid{grid-template-columns:1fr;}}
+  .subsection-grid-2{grid-template-columns:repeat(2,1fr);}
+  @media (max-width:900px){.subsection-grid-2{grid-template-columns:1fr;}}
+
+  /* ---------- Expand-in-place project view ---------- */
+  .project-cards-grid .project-expanded{grid-column:1/-1;}
+  .back-to-projects{
+    display:inline-flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;
+    color:var(--blue-deep);font-weight:700;font-size:14.5px;padding:0;margin-bottom:28px;
+    transition:transform .2s ease;
+  }
+  .back-to-projects:hover{transform:translateX(-3px);}
+  .summary-card{
+    background:var(--ice);border:1px solid var(--line);border-radius:24px;padding:30px;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .summary-card h4{color:var(--navy);font-size:16px;margin-bottom:10px;}
+  .summary-card p{color:var(--text-soft);font-size:15px;line-height:1.7;}
+  .sub-card{background:var(--ice);border:1px solid var(--line);border-radius:18px;padding:26px;}
+  .sub-card h4{color:var(--navy);font-size:16.5px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+  .sub-card .count{font-size:12px;background:#fff;border:1px solid var(--line);padding:2px 9px;border-radius:999px;color:var(--text-soft);font-weight:600;}
+  .sub-card ul{margin-top:14px;display:flex;flex-direction:column;gap:10px;}
+  .sub-card li{
+    font-size:14px;color:var(--text-soft);padding:10px 12px;background:#fff;border-radius:10px;
+    border:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px;
+  }
+  .sub-card li .pill{font-size:11px;background:var(--blue-pale);color:var(--blue-deep);padding:2px 8px;border-radius:999px;font-weight:600;white-space:nowrap;}
+  .sub-card .empty{
+    font-size:13.5px;color:#9fadc4;padding:18px 12px;text-align:center;border:1.5px dashed var(--line);
+    border-radius:10px;margin-top:14px;
+  }
+
+  .project-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;}
+  .pcard{
+    border-radius:20px;overflow:hidden;background:#fff;border:1px solid var(--line);cursor:pointer;
+    transition:all .3s ease;
+  }
+  .pcard:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
+  .pcard-top{height:170px;position:relative;overflow:hidden;}
+  .pcard-top canvas{width:100%!important;height:100%!important;display:block;}
+  .pcard-body{padding:22px 24px 26px;}
+  .pcard-body h3{color:var(--navy);font-size:19px;margin-bottom:8px;}
+  .pcard-body p{color:var(--text-soft);font-size:14px;line-height:1.6;margin-bottom:14px;}
+  .pcard-link{font-size:13.5px;font-weight:700;color:var(--blue-deep);display:inline-flex;align-items:center;gap:6px;}
+
+  /* ---------- Contact ---------- */
+  .contact-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:50px;}
+  @media (max-width:900px){.contact-grid{grid-template-columns:1fr;}}
+  .contact-info-card{
+    background:linear-gradient(155deg,var(--navy),#0a2560);color:#fff;border-radius:24px;padding:40px;
+  }
+  .contact-info-card h3{font-size:24px;margin-bottom:14px;}
+  .contact-info-card p{color:#c4d5f5;line-height:1.7;font-size:15px;margin-bottom:28px;}
+  .contact-row{display:flex;gap:14px;align-items:flex-start;margin-bottom:22px;}
+  .contact-row .ico{
+    width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.1);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;
+  }
+  .contact-row div h5{font-size:14px;margin-bottom:3px;}
+  .contact-row div p{font-size:13.5px;color:#a9bfe8;margin:0;}
+  .social-row{display:flex;gap:10px;margin-top:24px;}
+  .social-row a{
+    width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,0.1);
+    display:flex;align-items:center;justify-content:center;transition:all .25s ease;
+  }
+  .social-row a:hover{background:rgba(255,255,255,0.22);transform:translateY(-3px);}
+
+  .form-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:40px;box-shadow:var(--shadow);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  @media (max-width:560px){.form-row{grid-template-columns:1fr;}}
+  .field label{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:7px;display:block;}
+  .field input, .field select, .field textarea{
+    width:100%;padding:13px 14px;border-radius:10px;border:1.5px solid var(--line);
+    font-family:inherit;font-size:14.5px;color:var(--text);transition:border-color .2s ease;background:var(--ice);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--blue);background:#fff;}
+  .field textarea{resize:vertical;min-height:120px;}
+  .form-card .btn-primary{width:100%;justify-content:center;margin-top:6px;}
+  .form-success{
+    display:none;background:#e4f7ea;color:#1c8a4a;padding:14px 18px;border-radius:12px;
+    font-size:14px;font-weight:600;margin-top:16px;align-items:center;gap:8px;
+  }
+  .form-success.show{display:flex;}
+
+  /* ---------- Footer ---------- */
+  footer{background:var(--navy);color:#fff;padding:60px 32px 30px;}
+  .footer-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;}
+  @media (max-width:800px){.footer-inner{grid-template-columns:1fr 1fr;}}
+  .footer-inner h5{font-size:14px;margin-bottom:16px;color:#8fb4ff;letter-spacing:.04em;}
+  .footer-inner ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+  .footer-inner ul a{color:#c4d5f5;font-size:14px;transition:color .2s ease;}
+  .footer-inner ul a:hover{color:#fff;}
+  .footer-bottom{
+    max-width:1180px;margin:40px auto 0;padding-top:24px;border-top:1px solid rgba(255,255,255,0.1);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:#8296bf;font-size:13px;
+  }
+
+  /* Page transition */
+  .page-enter{animation:pageIn .5s ease both;}
+  @keyframes pageIn{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+  /* scroll to top btn */
+  #toTop{
+    position:fixed;right:26px;bottom:26px;width:46px;height:46px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));color:#fff;border:none;
+    font-size:18px;cursor:pointer;box-shadow:0 12px 26px -8px rgba(47,125,255,0.6);
+    display:flex;align-items:center;justify-content:center;z-index:400;
+    opacity:0;pointer-events:none;transition:opacity .3s ease, transform .3s ease;
+  }
+  #toTop.show{opacity:1;pointer-events:auto;}
+  #toTop:hover{transform:translateY(-3px);}
+
+  /* ---------- Mega hero title ---------- */
+  .mega-title{
+    font-size:clamp(56px,10.5vw,132px);font-weight:700;line-height:0.92;letter-spacing:-0.02em;
+    background:linear-gradient(120deg,#ffffff, #bcd6ff 70%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px;
+  }
+  .hero-tagline{font-size:clamp(19px,2.6vw,26px);color:#8fb4ff;font-weight:600;margin-bottom:20px;}
+
+  /* ---------- Connected project tabs ---------- */
+  .project-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:2px solid var(--line);margin-bottom:46px;}
+  .project-tab{
+    padding:14px 20px 12px;border:none;border-bottom:3px solid transparent;background:transparent;border-radius:0;
+    cursor:pointer;font-weight:600;font-size:14.5px;color:var(--text-soft);
+    display:flex;align-items:center;gap:8px;transition:all .2s ease;margin-bottom:-2px;
+  }
+  .project-tab.active{color:var(--navy);border-bottom-color:var(--blue-bright);}
+  .project-tab:hover{color:var(--blue-deep);}
+
+  /* ---------- Square project boxes ---------- */
+  .pcard-top{aspect-ratio:1/1;height:auto;}
+  @media (max-width:600px){.pcard-top{aspect-ratio:16/10;}}
+
+  /* ---------- Project thumbnails (image, upload-capable) ---------- */
+  .thumb-wrap{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+  .thumb-icon{font-size:56px;filter:drop-shadow(0 6px 14px rgba(0,0,0,0.35));}
+  .thumb-edit-btn{
+    position:absolute;bottom:10px;right:10px;background:rgba(10,20,45,0.75);color:#fff;border:none;
+    font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;
+  }
+  .thumb-edit-btn:hover{background:rgba(10,20,45,0.92);}
+
+  /* ---------- Founders ---------- */
+  .founders-card{
+    display:flex;gap:36px;align-items:center;flex-wrap:wrap;
+    background:linear-gradient(155deg, var(--blue-pale), #fff);
+    border:1px solid var(--line);border-radius:26px;padding:42px;margin-bottom:56px;
+  }
+  .founders-photos{display:flex;gap:-14px;}
+  .founders-photos .avatar-wrap{border:4px solid #fff;box-shadow:0 8px 20px -8px rgba(13,59,140,0.3);}
+  .founders-photos .avatar-wrap:nth-child(2){margin-left:-22px;}
+  .founders-text{flex:1;min-width:260px;}
+  .founders-story{color:var(--text-soft);font-size:15.5px;line-height:1.75;margin-top:12px;}
+
+  /* ---------- Full team ---------- */
+  .full-team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:22px;}
+  .full-team-card{
+    display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);
+    border-radius:14px;padding:12px 16px;transition:all .25s ease;
+  }
+  .full-team-card:hover{border-color:var(--blue);box-shadow:var(--shadow);transform:translateY(-2px);}
+  .ft-name{font-weight:600;font-size:14px;color:var(--navy);}
+  .ft-team{font-size:11.5px;font-weight:700;letter-spacing:.03em;}
+  .ft-team-badge{
+    display:inline-block;margin-top:4px;font-size:10.5px;font-weight:700;letter-spacing:.03em;
+    color:#fff;padding:2px 9px;border-radius:999px;
+  }
+
+  /* ---------- Avatar (upload-capable) ---------- */
+  .avatar-wrap{
+    position:relative;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;color:#fff;
+  }
+  .avatar-wrap > img, .avatar-wrap > span{
+    width:100%;height:100%;object-fit:cover;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .avatar-edit-btn{
+    position:absolute;bottom:-4px;right:-4px;z-index:5;display:flex;align-items:center;justify-content:center;
+    background:var(--blue-bright);color:#fff;border:2px solid #fff;cursor:pointer;font-size:12px;
+    border-radius:999px;padding:5px 9px;box-shadow:0 6px 14px -4px rgba(0,0,0,0.4);
+    opacity:1;transition:transform .15s ease;white-space:nowrap;
+  }
+  .avatar-edit-btn:hover{transform:scale(1.06);background:var(--blue-deep);}
+
+  /* member-photo becomes a wrapper for Avatar now */
+  .member-photo{padding:0;}
+
+  /* ---------- Edit mode ---------- */
+  [data-edit-key].editable-active{
+    outline:2px dashed rgba(47,125,255,0.55);outline-offset:4px;border-radius:6px;cursor:text;
+    background:rgba(47,125,255,0.05);
+  }
+  [data-edit-key].editable-active:focus{outline-color:#2f7dff;background:rgba(47,125,255,0.09);}
+  .edit-toolbar{
+    position:fixed;left:26px;bottom:26px;z-index:600;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:rgba(10,20,45,0.92);backdrop-filter:blur(10px);
+    padding:10px 12px;border-radius:16px;box-shadow:0 20px 50px -16px rgba(0,0,0,0.5);
+    max-width:calc(100vw - 100px);
+  }
+  .et-btn{
+    padding:10px 16px;border-radius:10px;border:none;background:rgba(255,255,255,0.1);color:#fff;
+    font-weight:600;font-size:13px;cursor:pointer;transition:all .2s ease;white-space:nowrap;
+  }
+  .et-btn:hover{background:rgba(255,255,255,0.2);}
+  .et-btn.active{background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));}
+  .et-btn.danger:hover{background:#ff5c7c;}
+  .et-hint{color:#a9bfe8;font-size:12.5px;padding:0 4px;}
+</style>
+</head>
+<body>
+
+<div id="boot-loader"><div class="ring"></div><p>Loading BioMation</p></div>
+<div id="root"></div>
+
+<script type="text/babel" data-type="module">
+const { useState, useEffect, useRef, useCallback, useContext } = React;
+
+/* ================= EDIT MODE / PERSISTENCE ================= */
+
+const LS_TEXT = "biomation_text_overrides";
+const LS_IMG = "biomation_image_overrides";
+const LS_MODEL = "biomation_model_overrides";
+const LS_FILES = "biomation_file_overrides";
+const EDIT_PASSWORD = "biomation2026";
+const MAX_EMBED_BYTES = 3 * 1024 * 1024; // ~3MB safe ceiling for localStorage-embedded files
+
+// Overrides baked into the file at export time (visible to every visitor, no login needed)
+const BAKED = (typeof window !== "undefined" && window.__BIOMATION_OVERRIDES__) || { text: {}, images: {}, models: {}, files: {} };
+
+function isAdminUrl(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    return params.get("admin") === "1" || window.location.hash.indexOf("admin=1") !== -1;
+  }catch(e){ return false; }
+}
+
+function getLocalTextOverrides(){ try{ return JSON.parse(localStorage.getItem(LS_TEXT) || "{}"); }catch(e){ return {}; } }
+function getLocalImageOverrides(){ try{ return JSON.parse(localStorage.getItem(LS_IMG) || "{}"); }catch(e){ return {}; } }
+function getLocalModelOverrides(){ try{ return JSON.parse(localStorage.getItem(LS_MODEL) || "{}"); }catch(e){ return {}; } }
+function getLocalFileOverrides(){ try{ return JSON.parse(localStorage.getItem(LS_FILES) || "{}"); }catch(e){ return {}; } }
+
+function saveLocalTextOverride(key, html){ const o = getLocalTextOverrides(); o[key] = html; localStorage.setItem(LS_TEXT, JSON.stringify(o)); }
+function saveLocalImageOverride(key, dataUrl){ const o = getLocalImageOverrides(); o[key] = dataUrl; localStorage.setItem(LS_IMG, JSON.stringify(o)); }
+function saveLocalModelOverride(key, modelObj){ const o = getLocalModelOverrides(); o[key] = modelObj; localStorage.setItem(LS_MODEL, JSON.stringify(o)); }
+function clearLocalModelOverride(key){ const o = getLocalModelOverrides(); delete o[key]; localStorage.setItem(LS_MODEL, JSON.stringify(o)); }
+function saveLocalFileList(key, list){ const o = getLocalFileOverrides(); o[key] = list; localStorage.setItem(LS_FILES, JSON.stringify(o)); }
+
+function resolveText(key, fallback){
+  const local = getLocalTextOverrides();
+  if(local[key] !== undefined) return local[key];
+  if(BAKED.text && BAKED.text[key] !== undefined) return BAKED.text[key];
+  return fallback;
+}
+function resolveImage(key){
+  const local = getLocalImageOverrides();
+  if(local[key] !== undefined) return local[key];
+  if(BAKED.images && BAKED.images[key] !== undefined) return BAKED.images[key];
+  return null;
+}
+function resolveModel(key){
+  const local = getLocalModelOverrides();
+  if(local[key] !== undefined) return local[key];
+  if(BAKED.models && BAKED.models[key] !== undefined) return BAKED.models[key];
+  return null;
+}
+function getFilesFor(key){
+  const local = getLocalFileOverrides();
+  if(local[key] !== undefined) return local[key];
+  if(BAKED.files && BAKED.files[key] !== undefined) return BAKED.files[key];
+  return [];
+}
+function addFile(key, fileObj){
+  const list = getFilesFor(key).slice();
+  list.push(fileObj);
+  saveLocalFileList(key, list);
+}
+function removeFileAt(key, index){
+  const list = getFilesFor(key).slice();
+  list.splice(index, 1);
+  saveLocalFileList(key, list);
+}
+
+const EditModeContext = React.createContext({ editMode: false, setEditMode: () => {} });
+function useEditMode(){ return useContext(EditModeContext); }
+
+function FileListSection({ storageKey, emptyLabel = "Nothing uploaded yet." }){
+  const { editMode } = useEditMode();
+  const [files, setFiles] = useState(() => getFilesFor(storageKey));
+  const [linkName, setLinkName] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
+  const inputRef = useRef(null);
+
+  const refresh = () => setFiles(getFilesFor(storageKey));
+
+  const onUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if(!file) return;
+    if(file.size > MAX_EMBED_BYTES){
+      alert("\"" + file.name + "\" is " + Math.round(file.size/1024/1024) + "MB — too big to save directly in the browser. Upload it to Google Drive/Dropbox instead, then paste the share link below.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => { addFile(storageKey, { name: file.name, kind: "embedded", value: reader.result, addedAt: Date.now() }); refresh(); };
+    reader.readAsDataURL(file);
+  };
+
+  const onAddLink = () => {
+    if(!linkUrl.trim()) return;
+    addFile(storageKey, { name: linkName.trim() || linkUrl.trim(), kind: "url", value: linkUrl.trim(), addedAt: Date.now() });
+    setLinkName(""); setLinkUrl("");
+    refresh();
+  };
+
+  const onRemove = (i) => { removeFileAt(storageKey, i); refresh(); };
+
+  return (
+    <React.Fragment>
+      {files.length > 0 && (
+        <ul style={{ marginTop: 10 }}>
+          {files.map((f, i) => (
+            <li key={i} style={{ justifyContent: "space-between" }}>
+              <a href={f.value} target="_blank" rel="noopener noreferrer" download={f.kind === "embedded" ? f.name : undefined} style={{ color: "var(--blue-deep)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis" }}>{f.name}</a>
+              {editMode && <button type="button" onClick={() => onRemove(i)} style={{ border: "none", cursor: "pointer", background: "#ffe1e6", color: "#c23350", fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 999 }}>Remove</button>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {files.length === 0 && !editMode && <div className="empty">{emptyLabel}</div>}
+      {editMode && (
+        <div style={{ marginTop: 14, padding: 12, background: "#fff", border: "1px dashed var(--line)", borderRadius: 10 }}>
+          <button type="button" className="et-btn" style={{ background: "var(--blue-pale)", color: "var(--blue-deep)" }} onClick={() => inputRef.current && inputRef.current.click()}>⬆ Upload file (&lt;3MB)</button>
+          <input ref={inputRef} type="file" style={{ display: "none" }} onChange={onUpload} />
+          <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+            <input placeholder="Link name (optional)" value={linkName} onChange={e => setLinkName(e.target.value)} style={{ flex: "1 1 120px", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--line)", fontSize: 13 }} />
+            <input placeholder="Paste a Drive/Dropbox/web link" value={linkUrl} onChange={e => setLinkUrl(e.target.value)} style={{ flex: "2 1 200px", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--line)", fontSize: 13 }} />
+            <button type="button" className="et-btn" style={{ background: "var(--navy)" }} onClick={onAddLink}>+ Add link</button>
+          </div>
+        </div>
+      )}
+    </React.Fragment>
+  );
+}
+
+function ModelSourceControl({ modelKey }){
+  const { editMode } = useEditMode();
+  const inputRef = useRef(null);
+  const [url, setUrl] = useState("");
+  const current = resolveModel(modelKey);
+
+  if(!editMode) return null;
+
+  const notify = () => window.dispatchEvent(new CustomEvent("biomation-model-updated", { detail: modelKey }));
+
+  const onUpload = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if(!file) return;
+    if(file.size > MAX_EMBED_BYTES){
+      alert("That model is " + Math.round(file.size/1024/1024) + "MB — too big to save directly in the browser. Host the .glb/.gltf somewhere (Drive/Dropbox/GitHub) and paste a direct link below instead.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => { saveLocalModelOverride(modelKey, { kind: "embedded", value: reader.result }); notify(); };
+    reader.readAsDataURL(file);
+  };
+
+  const onSetUrl = () => {
+    if(!url.trim()) return;
+    saveLocalModelOverride(modelKey, { kind: "url", value: url.trim() });
+    notify();
+  };
+
+  const onClear = () => { clearLocalModelOverride(modelKey); notify(); };
+
+  return (
+    <div style={{ marginTop: 14, padding: 14, background: "rgba(255,255,255,0.08)", borderRadius: 12 }}>
+      <div style={{ color: "#cfe0ff", fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
+        {current ? "✓ Using your uploaded model" : "Swap in your real CAD / simulation model (.glb or .gltf)"}
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button type="button" className="et-btn" onClick={() => inputRef.current && inputRef.current.click()}>⬆ Upload .glb (&lt;3MB)</button>
+        <input ref={inputRef} type="file" accept=".glb,.gltf" style={{ display: "none" }} onChange={onUpload} />
+        <input placeholder="or paste a hosted .glb/.gltf URL" value={url} onChange={e => setUrl(e.target.value)} style={{ flex: "1 1 200px", padding: "8px 10px", borderRadius: 8, border: "none", fontSize: 13 }} />
+        <button type="button" className="et-btn" onClick={onSetUrl}>Use link</button>
+        {current && <button type="button" className="et-btn danger" onClick={onClear}>Reset to placeholder</button>}
+      </div>
+    </div>
+  );
+}
+
+function EditableText({ id, as: Tag = "div", className = "", html, style }){
+  const { editMode } = useEditMode();
+  const ref = useRef(null);
+  const [content, setContent] = useState(() => resolveText(id, html));
+
+  useEffect(() => { if(ref.current) ref.current.contentEditable = editMode ? "true" : "false"; }, [editMode]);
+
+  const onBlur = () => {
+    if(!ref.current) return;
+    const newHtml = ref.current.innerHTML;
+    setContent(newHtml);
+    saveLocalTextOverride(id, newHtml);
+  };
+
+  return (
+    <Tag
+      ref={ref}
+      data-edit-key={id}
+      className={className + (editMode ? " editable-active" : "")}
+      style={style}
+      onBlur={onBlur}
+      suppressContentEditableWarning={true}
+      dangerouslySetInnerHTML={{ __html: content }}
+    />
+  );
+}
+
+function Avatar({ editKey, name, size = 96, gradientFrom = "#2f7dff", gradientTo = "#0d3b8c", fallbackInitials }){
+  const { editMode } = useEditMode();
+  const [imgSrc, setImgSrc] = useState(() => resolveImage(editKey));
+  const inputRef = useRef(null);
+
+  const onFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImgSrc(reader.result);
+      saveLocalImageOverride(editKey, reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="avatar-wrap" style={{ width: size, height: size, fontSize: size * 0.36, background: imgSrc ? undefined : `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}>
+      {imgSrc ? <img src={imgSrc} alt={name} /> : <span>{fallbackInitials}</span>}
+      {editMode && (
+        <button type="button" className="avatar-edit-btn" title="Upload photo" onClick={() => inputRef.current && inputRef.current.click()}>📷 Upload</button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onFile} />
+    </div>
+  );
+}
+
+function ProjectThumbnail({ editKey, name, icon, color }){
+  const { editMode } = useEditMode();
+  const [imgSrc, setImgSrc] = useState(() => resolveImage(editKey));
+  const inputRef = useRef(null);
+
+  const onFile = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { setImgSrc(reader.result); saveLocalImageOverride(editKey, reader.result); };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="thumb-wrap" style={{ background: imgSrc ? undefined : `linear-gradient(155deg, ${color}33, #0a1530)` }}>
+      {imgSrc ? <img src={imgSrc} alt={name} /> : <span className="thumb-icon">{icon}</span>}
+      {editMode && (
+        <button type="button" className="thumb-edit-btn" title="Upload image" onClick={(e) => { e.preventDefault(); e.stopPropagation(); inputRef.current && inputRef.current.click(); }}>📷 Upload image</button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={onFile} />
+    </div>
+  );
+}
+
+function exportSite(){
+  const mergedText = { ...(BAKED.text || {}), ...getLocalTextOverrides() };
+  const mergedImages = { ...(BAKED.images || {}), ...getLocalImageOverrides() };
+  const mergedModels = { ...(BAKED.models || {}), ...getLocalModelOverrides() };
+  const mergedFiles = { ...(BAKED.files || {}), ...getLocalFileOverrides() };
+  const overrideScript = `window.__BIOMATION_OVERRIDES__ = ${JSON.stringify({ text: mergedText, images: mergedImages, models: mergedModels, files: mergedFiles })};`;
+
+  const clone = document.documentElement.cloneNode(true);
+  clone.querySelectorAll("[data-edit-key]").forEach(el => { el.removeAttribute("contenteditable"); el.classList.remove("editable-active"); });
+  clone.querySelectorAll(".edit-toolbar").forEach(el => el.remove());
+
+  let existing = clone.querySelector("#biomation-overrides-script");
+  if(!existing){
+    existing = document.createElement("script");
+    existing.id = "biomation-overrides-script";
+    const babelScript = clone.querySelector('script[type="text/babel"]');
+    babelScript.parentNode.insertBefore(existing, babelScript);
+  }
+  existing.textContent = overrideScript;
+
+  const html = "<!DOCTYPE html>\n" + clone.outerHTML;
+  const blob = new Blob([html], { type: "text/html" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function resetLocalEdits(){
+  localStorage.removeItem(LS_TEXT);
+  localStorage.removeItem(LS_IMG);
+  localStorage.removeItem(LS_MODEL);
+  localStorage.removeItem(LS_FILES);
+  location.reload();
+}
+
+function EditToolbar(){
+  const { editMode, setEditMode } = useEditMode();
+
+  // Never shown to regular visitors — only appears when the URL has ?admin=1,
+  // so the public biomation.com site stays clean.
+  if(!isAdminUrl()) return null;
+
+  const toggle = () => {
+    if(editMode){ setEditMode(false); return; }
+    const pass = window.prompt("Enter the edit password to unlock editing:");
+    if(pass === null) return;
+    if(pass === EDIT_PASSWORD) setEditMode(true);
+    else alert("Incorrect password.");
+  };
+
+  return (
+    <div className="edit-toolbar">
+      <button className={"et-btn" + (editMode ? " active" : "")} onClick={toggle}>{editMode ? "🔓 Editing ON" : "🔒 Edit Site"}</button>
+      {editMode && (
+        <React.Fragment>
+          <span className="et-hint">Click highlighted text/photos to edit · use the upload panels on Projects to add files &amp; models</span>
+          <button className="et-btn" onClick={exportSite}>⬇ Export Updated Site</button>
+          <button className="et-btn danger" onClick={resetLocalEdits}>Reset My Edits</button>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+/* ================= DATA ================= */
+
+const TEAM = {
+  tech: {
+    label: "Tech Team Leads",
+    color: "#123a7a",
+    blurb: "Transforms research into interactive digital formats — 3D CAD models, animations, and coded experiences — and manages the website and its distribution.",
+    members: [
+      { name: "Vaishnavi", role: "Tech Director", lead:true, bio: "Oversees all technical development at BioMation, from the CAD pipeline to the website itself, coordinating engineers, modelers, and developers." },
+      { name: "Imran", role: "CAD & 3D Modeler", bio: "Builds accurate 3D representations of organs, cells, and biological systems that form the foundation of every interactive model." },
+      { name: "Aashika", role: "Animation Specialist", bio: "Creates visually engaging animations that turn static research and 3D models into compelling educational content." },
+      { name: "Sanshray", role: "Software Developer / UI-UX Designer", bio: "Builds the web platforms, interactive apps, and simulations — making sure everything is user-friendly, educational, and visually clean." },
+    ]
+  },
+  research: {
+    label: "Research Team Leads",
+    color: "#145c36",
+    blurb: "Collects and provides cutting-edge research across biological fields, simplifies findings for the visualization teams, and ensures every model and animation is scientifically accurate.",
+    members: [
+      { name: "Gagana", role: "Research Team Lead", lead:true, bio: "Oversees all research accuracy and direction across BioMation's projects, working across neuroscience, cardiology, genetics, and biomechanics to keep every visualization grounded in real science." },
+      { name: "Shivika", role: "Neurology Lead", bio: "Guides the neuroscience research pipeline, translating complex neural mechanisms into content the tech team can accurately model and animate." },
+      { name: "Nitya", role: "Cardiology Lead", bio: "Leads cardiology research, ensuring the anatomy and function behind every heart model and simulation reflects current clinical understanding." },
+      { name: "Adi", role: "Cell Biology Lead", bio: "Drives cell biology research, breaking down cellular structures and processes for the Cell Bio project and future genetics work." },
+    ]
+  },
+  outreach: {
+    label: "Social Media Leads",
+    color: "#8a1f34",
+    blurb: "Manages BioMation's public presence, turns research and tech work into engaging content, and builds relationships with schools, universities, and STEM communities.",
+    members: [
+      { name: "Ria", role: "Social Media Manager", lead:true, bio: "Plans and schedules content, tracks engagement, and collaborates closely with the Tech and Research teams to keep messaging accurate and exciting." },
+      { name: "Aarnav", role: "Social Media Manager", lead:true, bio: "Co-leads social strategy and outreach, coordinating workshops, webinars, and campaigns that connect BioMation with STEM communities." },
+    ]
+  }
+};
+
+const PROJECTS = [
+  {
+    slug: "cell-biology",
+    title: "Cell Biology",
+    field: "Cell Biology",
+    color: "#2f7dff",
+    icon: "🧬",
+    status: "active",
+    model: "cell",
+    abstract: "An interactive exploration of the cell as a living system — from the fluid mosaic of the membrane to the machinery of the mitochondria. This project translates core cell biology into a rotatable 3D model, letting students explore organelle structure and function the way they'd explore a building's floor plan.",
+    latestUpdate: "The CAD team just finished the first full pass on the organelle layout — membrane, nucleus, and mitochondria are all in place and ready for texturing.",
+    tags: ["Organelles", "Membrane Transport", "Mitochondria", "Cell Signaling"],
+    articles: [
+      { title: "The Fluid Mosaic Model, Revisited", type: "Doc" },
+      { title: "How Mitochondria Power the Cell", type: "Doc" },
+    ],
+    newsletters: [
+      { title: "BioMation Digest — Launch Issue", type: "Newsletter" },
+    ],
+  },
+  {
+    slug: "neuroscience",
+    title: "Neuroscience",
+    field: "Neuroscience",
+    color: "#7c5cff",
+    icon: "🧠",
+    status: "progress",
+    model: "neuron",
+    abstract: "BioMation's neuroscience track visualizes the neuron and the signals that travel through it — from dendrite to axon terminal. The long-term goal is a full interactive model of synaptic transmission and simple neural circuits, led by our neurology specialist.",
+    latestUpdate: "Research on synaptic transmission is underway — the first 3D neuron model is in early modeling stages with the CAD team.",
+    tags: ["Neurons", "Synapses", "Action Potentials", "Neural Circuits"],
+    articles: [
+      { title: "Anatomy of a Neuron, Simplified", type: "Doc" },
+    ],
+    newsletters: [],
+  },
+  {
+    slug: "cardiology",
+    title: "Cardiology",
+    field: "Cardiology",
+    color: "#ff5c7c",
+    icon: "❤️",
+    status: "progress",
+    model: "heart",
+    abstract: "This project builds toward a fully interactive human heart — chambers, valves, and the electrical conduction system that keeps it beating. Our cardiology specialist is leading research that will anchor the CAD team's 3D model and future animations of blood flow.",
+    latestUpdate: "Research on the cardiac conduction system is wrapping up — chambers and valves are being blocked out next for the 3D model.",
+    tags: ["Chambers & Valves", "Conduction System", "Blood Flow", "Cardiac Cycle"],
+    articles: [],
+    newsletters: [],
+  },
+];
+
+const FOUNDERS_STORY_DEFAULT = "BioMation was founded by Vaishnavi Kalyanashetty and Gagana Muralidhar to address a specific gap: biological research is often published in formats that are difficult for students and the public to access or understand. Vaishnavi leads the organization's technical development, and Gagana leads its research direction. Together, they built BioMation around a straightforward model: researchers translate current findings in fields like neuroscience and cardiology into clear, accurate summaries, and the technical team turns that material into interactive 3D models and simulations. What started as a small effort between the two of them has since grown into a full team spanning research, engineering, and outreach, with the same goal it started with — making biological research easier to see, explore, and understand.";
+
+const FULL_TEAM = [
+  { name: "Vaishnavi Kalyanashetty", team: "Technology" },
+  { name: "Imran Durani", team: "Technology" },
+  { name: "Sahana Ramkumar", team: "Technology" },
+  { name: "Aashika Kumar", team: "Technology" },
+  { name: "Sanshray Vakkalagadda", team: "Technology" },
+  { name: "Anirudh J Yadrami", team: "Technology" },
+  { name: "Gagana Muralidhar", team: "Research" },
+  { name: "Shvika Srivastava", team: "Research" },
+  { name: "Riddhima Ghosh", team: "Research" },
+  { name: "Adarshini Anand", team: "Research" },
+  { name: "Adi Deodhar", team: "Research" },
+  { name: "Navya Verma", team: "Research" },
+  { name: "Gurshan Singh", team: "Research" },
+  { name: "Nitya Anand", team: "Research" },
+  { name: "Shriya Raman", team: "Research" },
+  { name: "Subhashree Dey Sarkar", team: "Research" },
+  { name: "Ria Jain", team: "Social Media" },
+  { name: "Aarnav Ramkumar", team: "Social Media" },
+  { name: "Akhil Mandaleeka", team: "Social Media" },
+  { name: "Hasita Aela", team: "Social Media" },
+];
+
+function teamColor(team){
+  if(team === "Technology") return "#123a7a";
+  if(team === "Research") return "#145c36";
+  return "#8a1f34";
+}
+
+const NAV = [
+  { path: "#/", label: "Home" },
+  { path: "#/about", label: "About Us" },
+  { path: "#/team", label: "Meet the Team" },
+  { path: "#/projects", label: "Projects" },
+  { path: "#/contact", label: "Contact Us" },
+];
+
+/* ================= ROUTER ================= */
+
+function useHashRoute(){
+  const [hash, setHash] = useState(window.location.hash || "#/");
+  useEffect(() => {
+    const onChange = () => { setHash(window.location.hash || "#/"); window.scrollTo({top:0, behavior:"instant" in window ? "instant":"auto"}); };
+    window.addEventListener("hashchange", onChange);
+    return () => window.removeEventListener("hashchange", onChange);
+  }, []);
+  return hash;
+}
+
+/* ================= REVEAL ON SCROLL ================= */
+
+function useReveal(){
+  useEffect(() => {
+    const els = document.querySelectorAll(".fade-up:not(.in)");
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add("in"); obs.unobserve(e.target); } });
+    }, { threshold: 0.15 });
+    els.forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  });
+}
+
+/* ================= THREE.JS VIEWER ================= */
+
+function buildHelix({ turns = 4, pointsPerTurn = 14, radius = 1.4, height = 6, sphereSize = 0.16, rungSize = 0.045 } = {}){
+  const helix = new THREE.Group();
+  const matA = new THREE.MeshStandardMaterial({ color: 0x2f7dff, roughness:0.35, metalness:0.2, emissive:0x0a1e42, emissiveIntensity:0.15 });
+  const matB = new THREE.MeshStandardMaterial({ color: 0x00e0c6, roughness:0.35, metalness:0.2, emissive:0x0a1e42, emissiveIntensity:0.15 });
+  const rungMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness:0.5, metalness:0.1 });
+  const total = turns * pointsPerTurn;
+  const sphGeo = new THREE.SphereGeometry(sphereSize, 16, 16);
+  const steps = []; // one entry per "layer" so callers can reveal the strand progressively
+  for(let i=0;i<total;i++){
+    const t = i / pointsPerTurn * Math.PI * 2;
+    const y = (i/total) * height - height/2;
+    const x1 = Math.cos(t) * radius, z1 = Math.sin(t) * radius;
+    const x2 = Math.cos(t + Math.PI) * radius, z2 = Math.sin(t + Math.PI) * radius;
+    const step = new THREE.Group();
+    const s1 = new THREE.Mesh(sphGeo, matA); s1.position.set(x1,y,z1); step.add(s1);
+    const s2 = new THREE.Mesh(sphGeo, matB); s2.position.set(x2,y,z2); step.add(s2);
+    if(i % 2 === 0){
+      const dist = Math.hypot(x2-x1, z2-z1);
+      const rungGeo = new THREE.CylinderGeometry(rungSize, rungSize, dist, 8);
+      const rung = new THREE.Mesh(rungGeo, rungMat);
+      rung.position.set((x1+x2)/2, y, (z1+z2)/2);
+      rung.lookAt(new THREE.Vector3(x2,y,z2));
+      rung.rotateX(Math.PI/2);
+      step.add(rung);
+    }
+    helix.add(step);
+    steps.push(step);
+  }
+  helix.userData.steps = steps;
+  return helix;
+}
+
+function buildModel(type){
+  const group = new THREE.Group();
+
+  if(type === "helix"){
+    group.add(buildHelix({ turns: 4, pointsPerTurn: 14, radius: 1.4, height: 6, sphereSize: 0.16, rungSize: 0.045 }));
+  }
+
+  if(type === "cell"){
+    const membrane = new THREE.Mesh(
+      new THREE.SphereGeometry(2.1, 48, 48),
+      new THREE.MeshPhysicalMaterial({ color:0x2f7dff, transparent:true, opacity:0.18, roughness:0.1, transmission:0.6, thickness:0.5 })
+    );
+    group.add(membrane);
+    const wire = new THREE.Mesh(new THREE.SphereGeometry(2.1,24,24), new THREE.MeshBasicMaterial({color:0x8fb4ff, wireframe:true, transparent:true, opacity:0.25}));
+    group.add(wire);
+    const nucleus = new THREE.Mesh(new THREE.SphereGeometry(0.75,32,32), new THREE.MeshStandardMaterial({color:0x7c5cff, roughness:0.4, emissive:0x2a1a6b, emissiveIntensity:0.3}));
+    nucleus.position.set(0.2,0.1,0.3);
+    group.add(nucleus);
+    const colors = [0x00e0c6, 0xff9d4d, 0xff5c7c, 0xffe14d];
+    for(let i=0;i<10;i++){
+      const geo = new THREE.SphereGeometry(0.15 + Math.random()*0.15, 12, 12);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color: colors[i % colors.length], roughness:0.4}));
+      const r = 1.1 + Math.random()*0.7;
+      const theta = Math.random()*Math.PI*2, phi = Math.acos(2*Math.random()-1);
+      mesh.position.set(r*Math.sin(phi)*Math.cos(theta), r*Math.sin(phi)*Math.sin(theta), r*Math.cos(phi));
+      group.add(mesh);
+    }
+  }
+
+  if(type === "neuron"){
+    const soma = new THREE.Mesh(new THREE.SphereGeometry(0.65,32,32), new THREE.MeshStandardMaterial({color:0x7c5cff, roughness:0.4, emissive:0x2a1a6b, emissiveIntensity:0.25}));
+    group.add(soma);
+    const axonCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.5,-0.1,0), new THREE.Vector3(1.6,-0.5,0.3), new THREE.Vector3(2.8,-0.3,-0.2), new THREE.Vector3(4,-0.6,0.4)
+    ]);
+    const axonGeo = new THREE.TubeGeometry(axonCurve, 40, 0.14, 8, false);
+    const axon = new THREE.Mesh(axonGeo, new THREE.MeshStandardMaterial({color:0x2f7dff, roughness:0.4}));
+    group.add(axon);
+    const terminalTips = [new THREE.Vector3(4.3,-0.9,0.7), new THREE.Vector3(4.4,-0.2,0.9), new THREE.Vector3(4.2,-0.6,-0.1)];
+    terminalTips.forEach(tip => {
+      const geo = new THREE.SphereGeometry(0.14,12,12);
+      const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0x00e0c6}));
+      mesh.position.copy(tip);
+      group.add(mesh);
+      const curve = new THREE.CatmullRomCurve3([new THREE.Vector3(4,-0.6,0.4), tip]);
+      const branch = new THREE.Mesh(new THREE.TubeGeometry(curve, 8, 0.05, 6, false), new THREE.MeshStandardMaterial({color:0x2f7dff}));
+      group.add(branch);
+    });
+    for(let i=0;i<7;i++){
+      const angle = (i/7) * Math.PI * 2;
+      const curve = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0,0,0),
+        new THREE.Vector3(Math.cos(angle)*0.9, Math.sin(angle)*0.6+0.3, Math.sin(angle)*0.7),
+        new THREE.Vector3(Math.cos(angle)*1.6, Math.sin(angle)*1.1+0.4, Math.sin(angle)*1.2)
+      ]);
+      const dendrite = new THREE.Mesh(new THREE.TubeGeometry(curve, 12, 0.06, 6, false), new THREE.MeshStandardMaterial({color:0x9c8bff}));
+      group.add(dendrite);
+    }
+    group.position.x = -1.2;
+  }
+
+  if(type === "heart"){
+    const matHeart = new THREE.MeshStandardMaterial({color:0xff5c7c, roughness:0.35, metalness:0.1});
+    const left = new THREE.Mesh(new THREE.SphereGeometry(1.05,32,32), matHeart);
+    left.position.set(-0.55,0.1,0); left.scale.set(1,1.2,1);
+    const right = new THREE.Mesh(new THREE.SphereGeometry(0.95,32,32), matHeart);
+    right.position.set(0.55,0.25,0); right.scale.set(1,1.15,1);
+    const bottom = new THREE.Mesh(new THREE.ConeGeometry(1.05,1.8,32), matHeart);
+    bottom.position.set(0,-1.2,0); bottom.rotation.x = Math.PI;
+    group.add(left, right, bottom);
+    const aortaCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0,1.1,0), new THREE.Vector3(0.3,1.7,0), new THREE.Vector3(1.1,1.9,0), new THREE.Vector3(1.6,1.5,0)
+    ]);
+    const aorta = new THREE.Mesh(new THREE.TubeGeometry(aortaCurve,20,0.28,10,false), new THREE.MeshStandardMaterial({color:0xffb3c2, roughness:0.4}));
+    group.add(aorta);
+    const veinCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.9,1.2,0.2), new THREE.Vector3(-1.4,1.7,0.1), new THREE.Vector3(-1.9,1.5,-0.1)
+    ]);
+    const vein = new THREE.Mesh(new THREE.TubeGeometry(veinCurve,20,0.22,10,false), new THREE.MeshStandardMaterial({color:0x6a8dff, roughness:0.4}));
+    group.add(vein);
+  }
+
+  if(type === "helix-robot"){
+    // A 3D printer for DNA: a fixed central rail, and a print head that
+    // spirals smoothly up it, tracing the exact path of the helix and
+    // depositing each piece as it passes. No flailing joints — just one
+    // continuous, predictable motion, like watching a printer work.
+    const rigMat = new THREE.MeshStandardMaterial({ color: 0xe8edf7, roughness: 0.3, metalness: 0.7 });
+    const rigMatDark = new THREE.MeshStandardMaterial({ color: 0x8fa3c9, roughness: 0.35, metalness: 0.6 });
+    const nozzleMat = new THREE.MeshStandardMaterial({ color: 0x2f7dff, roughness: 0.2, metalness: 0.5, emissive: 0x0a1e42, emissiveIntensity: 0.4 });
+
+    const turns = 2.6, radius = 0.55, height = 3.2;
+    const rigGroup = new THREE.Group();
+
+    // print bed
+    const bed = new THREE.Mesh(new THREE.CylinderGeometry(radius + 0.55, radius + 0.65, 0.16, 32), rigMatDark);
+    bed.position.y = -height / 2 - 0.22;
+    rigGroup.add(bed);
+
+    // central rail the print head rides on
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, height + 1.5, 12), rigMat);
+    rigGroup.add(rail);
+
+    // motor housing capping the top of the rail
+    const capBase = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.3, 16), rigMat);
+    capBase.position.y = height / 2 + 0.6;
+    rigGroup.add(capBase);
+    const capTop = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.32), rigMatDark);
+    capTop.position.y = height / 2 + 0.82;
+    rigGroup.add(capTop);
+
+    // orbiter: rotates around the rail while climbing it, carrying the print head
+    const orbiter = new THREE.Group();
+    orbiter.position.y = -height / 2;
+    const bracket = new THREE.Mesh(new THREE.BoxGeometry(radius + 0.2, 0.05, 0.05), rigMat);
+    bracket.position.x = (radius + 0.2) / 2;
+    orbiter.add(bracket);
+
+    const nozzle = new THREE.Group();
+    nozzle.position.set(radius + 0.08, 0, 0);
+    const nozzleBody = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.18, 12), nozzleMat);
+    nozzle.add(nozzleBody);
+    const nozzleTip = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.12, 12), nozzleMat);
+    nozzleTip.position.y = -0.15;
+    nozzleTip.rotation.x = Math.PI;
+    nozzle.add(nozzleTip);
+    orbiter.add(nozzle);
+    rigGroup.add(orbiter);
+
+    group.add(rigGroup);
+
+    // the DNA strand being printed — same turns/radius/height as the rail path,
+    // so the nozzle traces it exactly
+    const strand = buildHelix({ turns, pointsPerTurn: 12, radius, height, sphereSize: 0.1, rungSize: 0.032 });
+    group.add(strand);
+
+    group.userData.armRefs = { helixSteps: strand.userData.steps, orbiter, nozzle, turns, height };
+    group.position.set(0, 0.6, 0);
+  }
+
+  return group;
+}
+
+function ThreeViewer({ type, height = 420, autoRotate = true, interactive = true, modelKey = null }){
+  const mountRef = useRef(null);
+  const [tick, setTick] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+
+  // re-run the viewer whenever this project's uploaded/linked model changes
+  useEffect(() => {
+    if(!modelKey) return;
+    const handler = (e) => { if(e.detail === modelKey) setTick(t => t + 1); };
+    window.addEventListener("biomation-model-updated", handler);
+    return () => window.removeEventListener("biomation-model-updated", handler);
+  }, [modelKey]);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if(!mount) return;
+    let disposed = false;
+    setLoadError(false);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.1, 100);
+    camera.position.set(0, 0.6, 7);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    mount.appendChild(renderer.domElement);
+
+    const ambient = new THREE.AmbientLight(0x8fb4ff, 0.7);
+    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+    key.position.set(4,5,6);
+    const rim = new THREE.DirectionalLight(0x2f7dff, 0.6);
+    rim.position.set(-5,-3,-4);
+    scene.add(ambient, key, rim);
+
+    let controls = null;
+    let frameId = null;
+    let ro = null;
+    let model = null;
+
+    const startLoop = () => {
+      const armRefs = model.userData.armRefs;
+      const animate = () => {
+        frameId = requestAnimationFrame(animate);
+        if(controls) controls.update();
+        else model.rotation.y += 0.004;
+        if(armRefs && armRefs.helixSteps && armRefs.helixSteps.length){
+          const t = performance.now() * 0.001;
+          const total = armRefs.helixSteps.length;
+          const cyclePeriod = 6.5; // slow, deliberate — like watching a real print job
+          const holdFraction = 0.12; // brief pause at the top before resetting, like a finished print
+          const raw = (t % cyclePeriod) / cyclePeriod;
+          const phase = Math.min(raw / (1 - holdFraction), 1); // ease into the hold, no snap-back
+
+          const revealCount = Math.max(1, Math.ceil(phase * total));
+          for(let i = 0; i < total; i++) armRefs.helixSteps[i].visible = i < revealCount;
+
+          if(armRefs.orbiter){
+            // pure, constant-speed spiral — no bob, no wobble, just a steady climb
+            const totalAngle = armRefs.turns * Math.PI * 2;
+            armRefs.orbiter.rotation.y = totalAngle * phase;
+            armRefs.orbiter.position.y = -armRefs.height / 2 + phase * armRefs.height;
+          }
+        }
+        renderer.render(scene, camera);
+      };
+      animate();
+
+      const onResize = () => {
+        if(!mount) return;
+        camera.aspect = mount.clientWidth / mount.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(mount.clientWidth, mount.clientHeight);
+      };
+      ro = new ResizeObserver(onResize);
+      ro.observe(mount);
+    };
+
+    const placeModel = (obj, { fit = false } = {}) => {
+      if(disposed) return;
+      model = obj;
+      if(fit){
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3(); box.getSize(size);
+        const center = new THREE.Vector3(); box.getCenter(center);
+        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+        const scale = 3.4 / maxDim;
+        model.scale.setScalar(scale);
+        model.position.x -= center.x * scale;
+        model.position.y -= center.y * scale;
+        model.position.z -= center.z * scale;
+      }
+      scene.add(model);
+      if(interactive && THREE.OrbitControls){
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.08;
+        controls.autoRotate = autoRotate;
+        controls.autoRotateSpeed = 1.6;
+        controls.enableZoom = true;
+        controls.minDistance = 1.5;
+        controls.maxDistance = 16;
+      }
+      startLoop();
+    };
+
+    const override = modelKey ? resolveModel(modelKey) : null;
+
+    if(override && override.value && THREE.GLTFLoader){
+      const loader = new THREE.GLTFLoader();
+      const onError = (err) => {
+        console.warn("BioMation: couldn't load custom model, falling back to placeholder.", err);
+        if(!disposed){ setLoadError(true); placeModel(buildModel(type), { fit: false }); }
+      };
+      if(override.kind === "url"){
+        loader.load(override.value, (gltf) => placeModel(gltf.scene, { fit: true }), undefined, onError);
+      } else {
+        fetch(override.value).then(r => r.arrayBuffer()).then(buf => {
+          loader.parse(buf, "", (gltf) => placeModel(gltf.scene, { fit: true }), onError);
+        }).catch(onError);
+      }
+    } else {
+      placeModel(buildModel(type), { fit: false });
+    }
+
+    return () => {
+      disposed = true;
+      if(frameId) cancelAnimationFrame(frameId);
+      if(ro) ro.disconnect();
+      if(controls) controls.dispose();
+      renderer.dispose();
+      if(mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
+    };
+  }, [type, tick, modelKey]);
+
+  return (
+    <div style={{ position: "relative", width: "100%", height: height + "px" }}>
+      <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
+      {loadError && (
+        <div style={{ position: "absolute", top: 10, left: 10, background: "rgba(255,92,124,0.15)", border: "1px solid rgba(255,92,124,0.4)", color: "#ffb3c2", fontSize: 11.5, padding: "5px 10px", borderRadius: 999 }}>
+          Couldn't load that model — showing placeholder
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================= NAV ================= */
+
+function Header(){
+  const hash = useHashRoute();
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const isActive = (path) => {
+    if(path === "#/") return hash === "#/" || hash === "";
+    return hash.startsWith(path);
+  };
+
+  return (
+    <header className={"site" + (scrolled ? " scrolled" : "")}>
+      <div className="nav-inner">
+        <a href="#/" className="brand"><span className="dot"></span>BioMation</a>
+        <nav className={"links" + (open ? " open" : "")}>
+          {NAV.map(item => (
+            <a key={item.path} href={item.path} className={isActive(item.path) ? "active" : ""} onClick={() => setOpen(false)}>{item.label}</a>
+          ))}
+        </nav>
+        <button className="mobile-toggle" onClick={() => setOpen(!open)}>{open ? "✕" : "☰"}</button>
+      </div>
+    </header>
+  );
+}
+
+function Footer(){
+  return (
+    <footer>
+      <div className="footer-inner">
+        <div>
+          <a href="#/" className="brand" style={{color:"#fff", marginBottom:14, display:"inline-flex"}}><span className="dot"></span>BioMation</a>
+          <p style={{color:"#a9bfe8", fontSize:14, lineHeight:1.7, marginTop:14, maxWidth:280}}>
+            Translating advanced biological research into interactive, educational, and professional digital experiences.
+          </p>
+        </div>
+        <div>
+          <h5>Explore</h5>
+          <ul>
+            <li><a href="#/about">About Us</a></li>
+            <li><a href="#/team">Meet the Team</a></li>
+            <li><a href="#/projects">Projects</a></li>
+            <li><a href="#/contact">Contact Us</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Projects</h5>
+          <ul>
+            {PROJECTS.map(p => <li key={p.slug}><a href={"#/projects/" + p.slug}>{p.title}</a></li>)}
+          </ul>
+        </div>
+        <div>
+          <h5>Contact</h5>
+          <ul>
+            <li><a href="mailto:hello@biomation.org">hello@biomation.org</a></li>
+            <li><a href="#/contact">Send a message →</a></li>
+          </ul>
+        </div>
+      </div>
+      <div className="footer-bottom">
+        <span>© {new Date().getFullYear()} BioMation. A student-led organization.</span>
+        <span>Built by the BioMation Tech Team</span>
+      </div>
+    </footer>
+  );
+}
+
+function ToTop(){
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 500);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return <button id="toTop" className={show ? "show":""} onClick={() => window.scrollTo({top:0, behavior:"smooth"})}>↑</button>;
+}
+
+/* ================= PAGES ================= */
+
+function Home(){
+  useReveal();
+  return (
+    <div className="page-enter">
+      <section className="hero">
+        <div className="hero-canvas"></div>
+        <div className="hero-inner">
+          <div>
+            <span className="eyebrow">● Student-Led STEM Initiative</span>
+            <h1 className="mega-title"><EditableText id="home-hero-brand" as="span" html="BioMation" /></h1>
+            <div className="hero-tagline"><EditableText id="home-hero-tagline" as="span" html="Biology, engineered into experience." /></div>
+            <EditableText id="home-hero-lead" as="p" className="lead" html="BioMation turns cutting-edge biological research into interactive 3D models, simulations, and animations — built the same way our robotics team builds anything: research first, engineering second, and a working model at the end." />
+            <div className="cta-row">
+              <a href="#/projects" className="btn btn-primary">Explore Projects →</a>
+              <a href="#/about" className="btn btn-ghost">Our Mission</a>
+            </div>
+          </div>
+          <div className="hero-visual">
+            <ThreeViewer type="helix-robot" height={420} autoRotate={false} />
+          </div>
+        </div>
+      </section>
+
+      <div className="stats-strip">
+        <div className="stat"><div className="stat-num">3</div><div className="stat-label">Core Teams</div></div>
+        <div className="stat"><div className="stat-num">3</div><div className="stat-label">Active Project Tracks</div></div>
+        <div className="stat"><div className="stat-num">20</div><div className="stat-label">Team Members</div></div>
+      </div>
+
+      <section>
+        <div className="container">
+          <div className="section-head fade-up">
+            <div className="kicker">What we do</div>
+            <h2>From lab-bench research to interactive learning.</h2>
+            <p>We pair scientists with engineers, coders, and designers to turn complex biology into content anyone can explore.</p>
+          </div>
+          <div className="vm-grid">
+            <div className="vm-card fade-up">
+              <div className="icon">◈</div>
+              <h3>Our Vision</h3>
+              <EditableText id="home-vision" as="p" html="We envision a world where cutting-edge biological research is accessible, interactive, and understandable to students, professionals, and communities globally — by combining biology, mechanical engineering, and digital technology to bridge the gap between complex scientific discoveries and practical, visualized learning tools." />
+            </div>
+            <div className="vm-card fade-up">
+              <div className="icon">◎</div>
+              <h3>Our Mission</h3>
+              <EditableText id="home-mission" as="p" html="To translate advanced biological research into digital, interactive formats that are engaging, educational, and professional — bringing together experts in biology, engineering, coding, and design to create simulations, animations, and interactive content, beginning with neuroscience and cardiology and expanding to all biological systems." />
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function About(){
+  useReveal();
+  return (
+    <div className="page-enter">
+      <section style={{paddingTop:64, paddingBottom:60, background:"linear-gradient(180deg, var(--blue-pale), #fff)"}}>
+        <div className="container">
+          <div className="section-head fade-up">
+            <div className="kicker">About BioMation</div>
+            <h2>Making biology visible.</h2>
+            <p>BioMation is a student-led organization built on one idea: science becomes powerful when people can see it, rotate it, and explore it for themselves.</p>
+          </div>
+          <div className="vm-grid">
+            <div className="vm-card fade-up">
+              <div className="icon">◈</div>
+              <h3>Vision</h3>
+              <EditableText id="about-vision" as="p" html="We envision a world where cutting-edge biological research is accessible, interactive, and understandable to students, professionals, and communities globally. By combining biology, mechanical engineering, and digital technology, we aim to bridge the gap between complex scientific discoveries and practical, visualized learning tools." />
+            </div>
+            <div className="vm-card fade-up">
+              <div className="icon">◎</div>
+              <h3>Mission</h3>
+              <EditableText id="about-mission" as="p" html="Our mission is to translate advanced biological research into digital, interactive formats that are engaging, educational, and professional. We bring together experts in biology, engineering, coding, and design to create simulations, animations, and interactive educational content — beginning with neuroscience and cardiology, and expanding to all biological systems." />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="container">
+          <div className="section-head fade-up">
+            <h2>How We're Organized</h2>
+            <p>Research findings flow into technical visualization, and finished work flows out through outreach — a straight line from discovery to understanding.</p>
+          </div>
+          <div className="pillars pillars-chain">
+            <div className="pillar pillar-big fade-up">
+              <span className="tag">01 · Research</span>
+              <h4>Research Team</h4>
+              <p>Collects and provides cutting-edge research in neuroscience, cardiology, genetics, biomechanics, and beyond — then simplifies findings for the visualization teams while ensuring scientific accuracy throughout.</p>
+            </div>
+            <div className="chain-link" aria-hidden="true">→</div>
+            <div className="pillar pillar-big fade-up">
+              <span className="tag">02 · Build</span>
+              <h4>Tech Team</h4>
+              <p>Takes research input and transforms it into interactive digital formats: 3D CAD models, simulations, and animations, plus coded experiences like web apps and interactive tools — and manages the site itself.</p>
+            </div>
+            <div className="chain-link" aria-hidden="true">→</div>
+            <div className="pillar pillar-big fade-up">
+              <span className="tag">03 · Share</span>
+              <h4>Social Media &amp; Outreach</h4>
+              <p>Manages BioMation's public presence, turns research and tech work into engaging posts and graphics, and builds connections with schools, universities, and STEM communities through workshops and webinars.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{background:"var(--navy)", color:"#fff"}}>
+        <div className="container" style={{textAlign:"center"}}>
+          <div className="section-head fade-up" style={{margin:"0 auto 30px"}}>
+            <div className="kicker" style={{justifyContent:"center", color:"#8fb4ff"}}>Get involved</div>
+            <h2 style={{color:"#fff"}}>Want to work with us?</h2>
+            <p style={{color:"#c4d5f5"}}>Whether you're a researcher, engineer, designer, or storyteller — there's a place for you at BioMation.</p>
+          </div>
+          <a href="#/contact" className="btn btn-light fade-up">Get in Touch →</a>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function initials(name){ return name.split(" ").map(w => w[0]).join("").slice(0,2).toUpperCase(); }
+function colorFor(str){
+  const palette = ["#2f7dff","#7c5cff","#00b3a4","#ff5c7c","#ff9d4d","#0d3b8c","#1c8a4a"];
+  let hash = 0; for(let i=0;i<str.length;i++) hash = str.charCodeAt(i) + ((hash<<5)-hash);
+  return palette[Math.abs(hash) % palette.length];
+}
+
+function FoundersSection(){
+  return (
+    <section style={{ paddingTop: 0, paddingBottom: 0 }}>
+      <div className="container">
+        <div className="founders-card fade-up">
+          <div className="founders-photos">
+            <Avatar editKey="founder-vaishnavi-photo" name="Vaishnavi" size={112} gradientFrom="#2f7dff" gradientTo="#0d3b8c" fallbackInitials="V" />
+            <Avatar editKey="founder-gagana-photo" name="Gagana" size={112} gradientFrom="#7c5cff" gradientTo="#0d3b8c" fallbackInitials="G" />
+          </div>
+          <div className="founders-text">
+            <span className="member-lead">Founders</span>
+            <h3 style={{ fontSize: 26, color: "var(--navy)", margin: "12px 0 14px" }}>Vaishnavi Kalyanashetty &amp; Gagana Muralidhar</h3>
+            <EditableText id="founders-story" as="p" className="founders-story" html={FOUNDERS_STORY_DEFAULT} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FullTeamGrid(){
+  return (
+    <section style={{ paddingTop: 20 }}>
+      <div className="container">
+        <div className="section-head fade-up">
+          <div className="kicker">Meet the Full Team</div>
+          <h2>20 people, one mission.</h2>
+          <p>Every member of BioMation — color-coded by team: <span style={{color:teamColor("Technology"), fontWeight:700}}>Technology</span>, <span style={{color:teamColor("Research"), fontWeight:700}}>Research</span>, <span style={{color:teamColor("Social Media"), fontWeight:700}}>Social Media</span>.</p>
+        </div>
+        <div className="full-team-grid">
+          {FULL_TEAM.map((m, i) => (
+            <div className="full-team-card fade-up" key={m.name + i} style={{ borderLeft: `5px solid ${teamColor(m.team)}` }}>
+              <Avatar editKey={"fullteam-" + i + "-photo"} name={m.name} size={52} gradientFrom={teamColor(m.team)} gradientTo={colorFor(m.name)} fallbackInitials={initials(m.name)} />
+              <div>
+                <EditableText id={"fullteam-" + i + "-name"} as="div" className="ft-name" html={m.name} />
+                <span className="ft-team-badge" style={{ background: teamColor(m.team) }}>{m.team}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Team(){
+  useReveal();
+  const [activeGroup, setActiveGroup] = useState("tech");
+  const group = TEAM[activeGroup];
+  return (
+    <div className="page-enter">
+      <section style={{paddingTop:64, paddingBottom:36, background:"linear-gradient(180deg, var(--blue-pale), #fff)"}}>
+        <div className="container">
+          <div className="section-head fade-up">
+            <div className="kicker">The People</div>
+            <h2>Meet the Team.</h2>
+            <p>BioMation is powered by three teams working in lockstep — research, technical development, and outreach.</p>
+          </div>
+        </div>
+      </section>
+
+      <FoundersSection />
+
+      <section style={{paddingTop:56}}>
+        <div className="container">
+          <div className="section-head fade-up">
+            <div className="kicker">The Leads</div>
+            <h2>Meet the leads.</h2>
+          </div>
+          <div className="team-tabs">
+            {Object.entries(TEAM).map(([key, g]) => (
+              <button key={key} className={"team-tab" + (activeGroup === key ? " active" : "")} onClick={() => setActiveGroup(key)}>{g.label}</button>
+            ))}
+          </div>
+          <p className="team-group-desc">{group.blurb}</p>
+          <div className="team-grid">
+            {group.members.map(m => (
+              <div className="member-card fade-up" key={m.name}>
+                <div className="member-photo" style={{background: `linear-gradient(135deg, ${colorFor(m.name)}, ${group.color})`, height:150}}>
+                  <Avatar editKey={"lead-" + m.name.replace(/\s+/g,"-") + "-photo"} name={m.name} size={92} gradientFrom={colorFor(m.name)} gradientTo={group.color} fallbackInitials={initials(m.name)} />
+                </div>
+                <div className="member-body">
+                  <h4>{m.name}</h4>
+                  <div className="member-role">{m.role}</div>
+                  <EditableText id={"lead-" + m.name.replace(/\s+/g,"-") + "-bio"} as="p" html={m.bio} />
+                  {m.lead && <span className="member-lead">Team Lead</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <FullTeamGrid />
+    </div>
+  );
+}
+
+function ModelSourceControlWrap({ projectSlug }){
+  const { editMode } = useEditMode();
+  if(!editMode) return null;
+  return (
+    <div style={{ marginBottom: 32, background: "linear-gradient(155deg,#0d1f45,#0a1530)", borderRadius: 18, padding: 4 }}>
+      <ModelSourceControl modelKey={"project-" + projectSlug + "-model"} />
+    </div>
+  );
+}
+
+function ProjectExpanded({ project, onClose }){
+  useEffect(() => { window.scrollTo(0, 0); }, [project.slug]);
+
+  return (
+    <div className="project-expanded fade-up in" key={project.slug}>
+      <button type="button" className="back-to-projects" onClick={onClose}>← Back to Projects</button>
+
+      <span className={"project-status " + (project.status === "active" ? "status-active" : "status-progress")}>{project.status === "active" ? "Active Project" : "In Progress"}</span>
+      <h2 style={{ margin: "14px 0 16px" }}>{project.title}</h2>
+      <div className="field-badges" style={{ marginBottom: 22 }}>
+        {project.tags.map(t => <span key={t} className="field-badge">{t}</span>)}
+      </div>
+
+      <EditableText id={"project-" + project.slug + "-abstract"} as="p" className="abstract" html={project.abstract} style={{ maxWidth: 820, marginBottom: 32 }} />
+
+      <div className="project-hero" style={{ marginBottom: 8 }}>
+        <div className="viewer-wrap">
+          <span className="viewer-badge">Interactive Model</span>
+          <ThreeViewer type={project.model} height={420} modelKey={"project-" + project.slug + "-model"} />
+          <div className="viewer-hint">🖱 Drag to rotate · Scroll to zoom</div>
+        </div>
+        <div className="summary-card">
+          <h4>Latest Project Summary</h4>
+          <EditableText id={"project-" + project.slug + "-latest"} as="p" html={project.latestUpdate || "No recent updates yet — check back soon."} />
+        </div>
+      </div>
+      <ModelSourceControlWrap projectSlug={project.slug} />
+
+      <div className="subsection-grid subsection-grid-2">
+        <div className="sub-card fade-up">
+          <h4>📄 Articles <span className="count">{project.articles.length}</span></h4>
+          {project.articles.length > 0 ? (
+            <ul>{project.articles.map(a => <li key={a.title}>{a.title}<span className="pill">{a.type}</span></li>)}</ul>
+          ) : <div className="empty">No articles published yet — check back soon.</div>}
+          <FileListSection storageKey={"project-" + project.slug + "-articles"} emptyLabel="No uploaded articles yet." />
+        </div>
+        <div className="sub-card fade-up">
+          <h4>🔗 Read About This Topic in Other Disciplines</h4>
+          {project.newsletters.length > 0 ? (
+            <ul>{project.newsletters.map(a => <li key={a.title}>{a.title}<span className="pill">{a.type}</span></li>)}</ul>
+          ) : <div className="empty">No cross-discipline links yet.</div>}
+          <FileListSection storageKey={"project-" + project.slug + "-newsletters"} emptyLabel="No links added yet." />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Projects({ initialSlug }){
+  useReveal();
+  const [openSlug, setOpenSlug] = useState(initialSlug || null);
+
+  useEffect(() => { setOpenSlug(initialSlug || null); }, [initialSlug]);
+
+  useEffect(() => {
+    const target = openSlug ? ("#/projects/" + openSlug) : "#/projects";
+    if(window.location.hash !== target) window.history.replaceState(null, "", target);
+  }, [openSlug]);
+
+  return (
+    <div className="page-enter">
+      <section style={{paddingTop:64, paddingBottom:36, background:"linear-gradient(180deg, var(--blue-pale), #fff)"}}>
+        <div className="container">
+          <div className="section-head fade-up">
+            <div className="kicker">Projects</div>
+            <h2>Every project starts as data. It becomes a model.</h2>
+            <p>Click a project to open it — the other two will step aside. Click Close (or the project again) to bring them back.</p>
+          </div>
+        </div>
+      </section>
+      <section style={{paddingTop:20}}>
+        <div className="container">
+          <div className="project-cards-grid">
+            {PROJECTS.filter(p => !openSlug || p.slug === openSlug).map(p => (
+              p.slug === openSlug ? (
+                <ProjectExpanded key={p.slug} project={p} onClose={() => setOpenSlug(null)} />
+              ) : (
+                <div
+                  key={p.slug}
+                  className="pcard fade-up"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setOpenSlug(p.slug)}
+                  onKeyDown={(e) => { if(e.key === "Enter" || e.key === " ") setOpenSlug(p.slug); }}
+                >
+                  <div className="pcard-top">
+                    <ProjectThumbnail editKey={"project-" + p.slug + "-thumbnail"} name={p.title} icon={p.icon} color={p.color} />
+                  </div>
+                  <div className="pcard-body">
+                    <span className={"project-status " + (p.status === "active" ? "status-active" : "status-progress")}>{p.status === "active" ? "Active" : "In Progress"}</span>
+                    <h3>{p.title}</h3>
+                    <p>{p.abstract.slice(0,110)}…</p>
+                    <span className="pcard-link">Open project →</span>
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Contact(){
+  useReveal();
+  const [sent, setSent] = useState(false);
+  const onSubmit = (e) => {
+    e.preventDefault();
+    setSent(true);
+    setTimeout(() => setSent(false), 5000);
+    e.target.reset();
+  };
+  return (
+    <div className="page-enter">
+      <section style={{paddingTop:64, paddingBottom:40, background:"linear-gradient(180deg, var(--blue-pale), #fff)"}}>
+        <div className="container">
+          <div className="section-head fade-up">
+            <div className="kicker">Contact Us</div>
+            <h2>Let's build something together.</h2>
+            <p>Questions about a project, interested in joining a team, or want to collaborate? Reach out below.</p>
+          </div>
+        </div>
+      </section>
+      <section style={{paddingTop:0}}>
+        <div className="container">
+          <div className="contact-grid">
+            <div className="contact-info-card fade-up">
+              <h3>Get in touch</h3>
+              <p>We're a student-led organization and love hearing from educators, students, and fellow builders.</p>
+              <div className="contact-row">
+                <div className="ico">✉</div>
+                <div><h5>Email</h5><p>hello@biomation.org</p></div>
+              </div>
+              <div className="contact-row">
+                <div className="ico">🎓</div>
+                <div><h5>For schools</h5><p>Ask about workshops &amp; webinars</p></div>
+              </div>
+              <div className="social-row">
+                <a href="#" title="Instagram">◎</a>
+                <a href="#" title="LinkedIn">in</a>
+                <a href="#" title="YouTube">▶</a>
+              </div>
+            </div>
+            <div className="form-card fade-up">
+              <form onSubmit={onSubmit}>
+                <div className="form-row">
+                  <div className="field"><label>First name</label><input required placeholder="Jane" /></div>
+                  <div className="field"><label>Last name</label><input required placeholder="Doe" /></div>
+                </div>
+                <div className="form-row">
+                  <div className="field"><label>Email</label><input required type="email" placeholder="you@example.com" /></div>
+                  <div className="field">
+                    <label>I'm reaching out about</label>
+                    <select>
+                      <option>General inquiry</option>
+                      <option>Joining a team</option>
+                      <option>School / workshop</option>
+                      <option>Partnership</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="field" style={{marginBottom:16}}>
+                  <label>Message</label>
+                  <textarea required placeholder="Tell us a bit about what you're looking for..."></textarea>
+                </div>
+                <button className="btn btn-primary" type="submit">Send Message →</button>
+                <div className={"form-success" + (sent ? " show" : "")}>✓ Thanks — we'll get back to you soon.</div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* ================= APP ================= */
+
+function App(){
+  const hash = useHashRoute();
+  const [editMode, setEditMode] = useState(false);
+
+  let page;
+  if(hash === "#/" || hash === "" ) page = <Home />;
+  else if(hash === "#/about") page = <About />;
+  else if(hash === "#/team") page = <Team />;
+  else if(hash === "#/projects") page = <Projects initialSlug={null} />;
+  else if(hash.startsWith("#/projects/")) page = <Projects initialSlug={hash.replace("#/projects/", "")} />;
+  else if(hash === "#/contact") page = <Contact />;
+  else page = <Home />;
+
+  return (
+    <EditModeContext.Provider value={{ editMode, setEditMode }}>
+      <Header />
+      <main>{page}</main>
+      <Footer />
+      <ToTop />
+      <EditToolbar />
+    </EditModeContext.Provider>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+
+setTimeout(() => {
+  const loader = document.getElementById("boot-loader");
+  if(loader){ loader.style.opacity = "0"; loader.style.visibility = "hidden"; setTimeout(() => loader.remove(), 650); }
+}, 400);
+</script>
+
+</body>
+</html>
