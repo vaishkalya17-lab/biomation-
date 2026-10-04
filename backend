@@ -1,0 +1,145 @@
+/**
+ * BioMation backend — Google Apps Script.
+ *
+ *  - Text edits, image links, model links and file lists live in a Sheet tab called "Overrides".
+ *  - Uploaded files (photos, .glb models, PDFs...) are stored in a Drive folder called "BioMation Uploads".
+ *  - Anyone can READ (that's how the public site loads its content).
+ *  - Only requests carrying the correct EDIT_PASSWORD can WRITE, UPLOAD or log in.
+ *    The password is checked here on Google's server, never in the website's code.
+ */
+
+// >>> CHANGE THIS to your own team password before deploying <<<
+var EDIT_PASSWORD = "CHANGE-ME-before-deploying";
+
+var SHEET_NAME = "Overrides";
+var FOLDER_NAME = "BioMation Uploads";
+var TYPES = ["text", "images", "models", "files"];
+var MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+var MAX_CELL_CHARS = 45000; // Sheets hard limit is 50,000 per cell
+
+function json_(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function spreadsheet_() {
+  // Works whether the script was created from inside a Sheet or as a standalone project.
+  var ss = null;
+  try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (e) {}
+  if (ss) return ss;
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty("SPREADSHEET_ID");
+  if (id) return SpreadsheetApp.openById(id);
+  ss = SpreadsheetApp.create("BioMation Content");
+  props.setProperty("SPREADSHEET_ID", ss.getId());
+  return ss;
+}
+
+function sheet_() {
+  var ss = spreadsheet_();
+  var sh = ss.getSheetByName(SHEET_NAME);
+  if (!sh) {
+    sh = ss.insertSheet(SHEET_NAME);
+    sh.appendRow(["type", "key", "value", "updatedAt"]);
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+function folder_() {
+  var it = DriveApp.getFoldersByName(FOLDER_NAME);
+  return it.hasNext() ? it.next() : DriveApp.createFolder(FOLDER_NAME);
+}
+
+function readAll_() {
+  var out = { text: {}, images: {}, models: {}, files: {} };
+  var rows = sheet_().getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    var type = rows[i][0], key = rows[i][1];
+    if (!out[type] || !key) continue;
+    try { out[type][key] = JSON.parse(rows[i][2]); } catch (e) {}
+  }
+  return out;
+}
+
+// Public, read-only.
+function doGet(e) {
+  var action = (e && e.parameter && e.parameter.action) || "all";
+
+  if (action === "blob") {
+    // Serves a stored upload as a data URL (used for 3D models so browser CORS rules never block them).
+    // Only files inside our own upload folder can be fetched.
+    try {
+      var file = DriveApp.getFileById(e.parameter.id);
+      var ourId = folder_().getId();
+      var parents = file.getParents(), ok = false;
+      while (parents.hasNext()) { if (parents.next().getId() === ourId) ok = true; }
+      if (!ok) return json_({ ok: false, message: "Not found." });
+      var blob = file.getBlob();
+      return json_({ ok: true, dataUrl: "data:" + blob.getContentType() + ";base64," + Utilities.base64Encode(blob.getBytes()) });
+    } catch (err) {
+      return json_({ ok: false, message: "Not found." });
+    }
+  }
+
+  return json_(readAll_());
+}
+
+// Password-protected writes.
+function doPost(e) {
+  var body;
+  try { body = JSON.parse(e.postData.contents); }
+  catch (err) { return json_({ ok: false, message: "Bad request." }); }
+
+  if (body.password !== EDIT_PASSWORD) return json_({ ok: false, message: "Incorrect password." });
+
+  if (body.action === "auth") return json_({ ok: true });
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    if (body.action === "upload") return upload_(body);
+    if (body.action === "set") return set_(body);
+    if (body.action === "delete") return delete_(body);
+    return json_({ ok: false, message: "Unknown action." });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function upload_(body) {
+  var m = /^data:([^;,]+)?(;base64)?,(.*)$/.exec(String(body.dataUrl || ""));
+  if (!m) return json_({ ok: false, message: "Bad file data." });
+  var bytes = Utilities.base64Decode(m[3]);
+  if (bytes.length > MAX_UPLOAD_BYTES) return json_({ ok: false, message: "File too large (max 8MB)." });
+  var name = String(body.name || "upload").replace(/[^\w.\- ]+/g, "_").slice(0, 100);
+  var file = folder_().createFile(Utilities.newBlob(bytes, m[1] || "application/octet-stream", name));
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return json_({ ok: true, id: file.getId() });
+}
+
+function findRow_(sh, type, key) {
+  var rows = sh.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i][0] === type && rows[i][1] === key) return i + 1;
+  }
+  return -1;
+}
+
+function set_(body) {
+  if (TYPES.indexOf(body.type) < 0 || !body.key) return json_({ ok: false, message: "Bad request." });
+  var value = JSON.stringify(body.value);
+  if (value.length > MAX_CELL_CHARS) return json_({ ok: false, message: "That content is too large to save." });
+  var sh = sheet_();
+  var row = findRow_(sh, body.type, body.key);
+  var data = [body.type, body.key, value, new Date()];
+  if (row > 0) sh.getRange(row, 1, 1, 4).setValues([data]);
+  else sh.appendRow(data);
+  return json_({ ok: true });
+}
+
+function delete_(body) {
+  var sh = sheet_();
+  var row = findRow_(sh, body.type, body.key);
+  if (row > 0) sh.deleteRow(row);
+  return json_({ ok: true });
+}
