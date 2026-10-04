@@ -714,9 +714,9 @@ function EditableText({ id, as: Tag = "div", className = "", html, style }){
   );
 }
 
-function Avatar({ editKey, name, size = 96, gradientFrom = "#2f7dff", gradientTo = "#0d3b8c", fallbackInitials }){
+function Avatar({ editKey, name, size = 96, gradientFrom = "#2f7dff", gradientTo = "#0d3b8c", fallbackInitials, photo }){
   const { editMode } = useEditMode();
-  const [imgSrc, setImgSrc] = useState(() => resolveImage(editKey));
+  const [imgSrc, setImgSrc] = useState(() => resolveImage(editKey) || photo || null);
   const inputRef = useRef(null);
 
   const onFile = (e) => {
@@ -927,20 +927,20 @@ const FULL_TEAM = [
   { name: "Sahana Ramkumar", team: "Technology" },
   { name: "Aashika Kumar", team: "Technology" },
   { name: "Sanshray Vakkalagadda", team: "Technology" },
-  { name: "Anirudh J Yadrami", team: "Technology" },
+  { name: "Anirudh J Yadrami", team: "Technology", photo: "images/team/Anirudh.JPG.jpeg" },
   { name: "Gagana Muralidhar", team: "Research" },
   { name: "Shvika Srivastava", team: "Research" },
-  { name: "Riddhima Ghosh", team: "Research" },
+  { name: "Riddhima Ghosh", team: "Research", photo: "images/team/riddhima.png" },
   { name: "Adarshini Anand", team: "Research" },
   { name: "Adi Deodhar", team: "Research" },
-  { name: "Gurshan Singh", team: "Research" },
+  { name: "Gurshan Singh", team: "Research", photo: "images/team/gurshan.jpeg" },
   { name: "Nitya Anand", team: "Research" },
   { name: "Shriya Raman", team: "Research" },
   { name: "Subhashree Dey Sarkar", team: "Research" },
   { name: "Ria Jain", team: "Social Media" },
   { name: "Aarnav Ramkumar", team: "Social Media" },
   { name: "Akhil Mandaleeka", team: "Social Media" },
-  { name: "Hasita Aela", team: "Social Media" },
+  { name: "Hasita Aela", team: "Social Media", photo: "images/team/hasita.jpeg" },
 ];
 
 function teamColor(team){
@@ -1553,7 +1553,7 @@ function FullTeamGrid(){
         <div className="full-team-grid">
           {FULL_TEAM.map((m, i) => (
             <div className="full-team-card fade-up" key={m.name + i} style={{ borderLeft: `5px solid ${teamColor(m.team)}` }}>
-              <Avatar editKey={"fullteam-" + i + "-photo"} name={m.name} size={52} gradientFrom={teamColor(m.team)} gradientTo={colorFor(m.name)} fallbackInitials={initials(m.name)} />
+              <Avatar editKey={"fullteam-" + i + "-photo"} name={m.name} size={52} gradientFrom={teamColor(m.team)} gradientTo={colorFor(m.name)} fallbackInitials={initials(m.name)} photo={m.photo} />
               <div>
                 <EditableText id={"fullteam-" + i + "-name"} as="div" className="ft-name" html={m.name} />
                 <span className="ft-team-badge" style={{ background: teamColor(m.team) }}>{m.team}</span>
