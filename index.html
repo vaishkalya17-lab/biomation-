@@ -841,7 +841,7 @@ const TEAM = {
     color: "#123a7a",
     blurb: "Transforms research into interactive digital formats — 3D CAD models, animations, and coded experiences — and manages the website and its distribution.",
     members: [
-      { name: "Vaishnavi", role: "Tech Director", lead:true, bio: "Oversees all technical development at BioMation, from the CAD pipeline to the website itself, coordinating engineers, modelers, and developers." },
+      { name: "Vaishnavi", role: "Tech Director", lead:true, bio: "Oversees all technical development at BioMation, from the CAD pipeline to the website itself, coordinating engineers, modelers, and developers.", photo: "images/team/vaishnavi.png" },
       { name: "Aashika", role: "Animation Specialist", bio: "Creates visually engaging animations that turn static research and 3D models into compelling educational content." },
       { name: "Sanshray", role: "Software Developer / UI-UX Designer", bio: "Builds the web platforms, interactive apps, and simulations — making sure everything is user-friendly, educational, and visually clean." },
     ]
@@ -877,6 +877,7 @@ const PROJECTS = [
     icon: "🧬",
     status: "active",
     model: "cell",
+    simulationUrl: "vaccine-journey_5.html",
     abstract: "An interactive exploration of the cell as a living system — from the fluid mosaic of the membrane to the machinery of the mitochondria. This project translates core cell biology into a rotatable 3D model, letting students explore organelle structure and function the way they'd explore a building's floor plan.",
     latestUpdate: "The CAD team just finished the first full pass on the organelle layout — membrane, nucleus, and mitochondria are all in place and ready for texturing.",
     tags: ["Organelles", "Membrane Transport", "Mitochondria", "Cell Signaling"],
@@ -923,7 +924,7 @@ const PROJECTS = [
 const FOUNDERS_STORY_DEFAULT = "BioMation was founded by Vaishnavi Kalyanashetty and Gagana Muralidhar to address a specific gap: biological research is often published in formats that are difficult for students and the public to access or understand. Vaishnavi leads the organization's technical development, and Gagana leads its research direction. Together, they built BioMation around a straightforward model: researchers translate current findings in fields like neuroscience and cardiology into clear, accurate summaries, and the software dev team turns that material into interactive 3D models and simulations. What started as a small effort between the two of them has since grown into a full team spanning research, engineering, and outreach, with the same goal it started with — making biological research easier to see, explore, and understand.";
 
 const FULL_TEAM = [
-  { name: "Vaishnavi Kalyanashetty", team: "Technology" },
+  { name: "Vaishnavi Kalyanashetty", team: "Technology", photo: "images/team/vaishnavi.png" },
   { name: "Sahana Ramkumar", team: "Technology" },
   { name: "Aashika Kumar", team: "Technology" },
   { name: "Sanshray Vakkalagadda", team: "Technology" },
@@ -1527,7 +1528,7 @@ function FoundersSection(){
       <div className="container">
         <div className="founders-card fade-up">
           <div className="founders-photos">
-            <Avatar editKey="founder-vaishnavi-photo" name="Vaishnavi" size={112} gradientFrom="#2f7dff" gradientTo="#0d3b8c" fallbackInitials="V" />
+            <Avatar editKey="founder-vaishnavi-photo" name="Vaishnavi" size={112} gradientFrom="#2f7dff" gradientTo="#0d3b8c" fallbackInitials="V" photo="images/team/vaishnavi.png" />
             <Avatar editKey="founder-gagana-photo" name="Gagana" size={112} gradientFrom="#7c5cff" gradientTo="#0d3b8c" fallbackInitials="G" />
           </div>
           <div className="founders-text">
@@ -1600,7 +1601,7 @@ function Team(){
             {group.members.map(m => (
               <div className="member-card fade-up" key={m.name}>
                 <div className="member-photo" style={{background: `linear-gradient(135deg, ${colorFor(m.name)}, ${group.color})`, height:150}}>
-                  <Avatar editKey={"lead-" + m.name.replace(/\s+/g,"-") + "-photo"} name={m.name} size={92} gradientFrom={colorFor(m.name)} gradientTo={group.color} fallbackInitials={initials(m.name)} />
+                  <Avatar editKey={"lead-" + m.name.replace(/\s+/g,"-") + "-photo"} name={m.name} size={92} gradientFrom={colorFor(m.name)} gradientTo={group.color} fallbackInitials={initials(m.name)} photo={m.photo} />
                 </div>
                 <div className="member-body">
                   <h4>{m.name}</h4>
@@ -1646,13 +1647,41 @@ function ProjectExpanded({ project, onClose }){
 
       <div className="project-hero" style={{ marginBottom: 8 }}>
         <div className="viewer-wrap">
-          <span className="viewer-badge">Interactive Model</span>
-          <ThreeViewer type={project.model} height={420} modelKey={"project-" + project.slug + "-model"} />
-          <div className="viewer-hint">🖱 Drag to rotate · Scroll to zoom</div>
+          <span className="viewer-badge">{project.simulationUrl ? "Interactive 3D Simulation" : "Interactive Model"}</span>
+          {project.simulationUrl ? (
+            <div style={{ width: "100%", height: 420, borderRadius: 12, overflow: "hidden", position: "relative" }}>
+              <iframe
+                src={project.simulationUrl}
+                title={project.title + " Interactive Simulation"}
+                style={{ width: "100%", height: "100%", border: "none" }}
+              />
+              <a
+                href={project.simulationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-ghost"
+                style={{ position: "absolute", top: 12, right: 12, background: "rgba(10,20,30,0.85)", color: "#fff", fontSize: 12, padding: "6px 12px", zIndex: 10 }}
+              >
+                Open Fullscreen ↗
+              </a>
+            </div>
+          ) : (
+            <React.Fragment>
+              <ThreeViewer type={project.model} height={420} modelKey={"project-" + project.slug + "-model"} />
+              <div className="viewer-hint">🖱 Drag to rotate · Scroll to zoom</div>
+            </React.Fragment>
+          )}
         </div>
         <div className="summary-card">
           <h4>Latest Project Summary</h4>
           <EditableText id={"project-" + project.slug + "-latest"} as="p" html={project.latestUpdate || "No recent updates yet — check back soon."} />
+          {project.simulationUrl && (
+            <div style={{ marginTop: 16 }}>
+              <a href={project.simulationUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ width: "100%", textAlign: "center", display: "inline-block" }}>
+                🚀 Launch Full Simulation →
+              </a>
+            </div>
+          )}
         </div>
       </div>
       <ModelSourceControlWrap projectSlug={project.slug} />
