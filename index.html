@@ -714,7 +714,7 @@ function EditableText({ id, as: Tag = "div", className = "", html, style }){
   );
 }
 
-function Avatar({ editKey, name, size = 96, gradientFrom = "#2f7dff", gradientTo = "#0d3b8c", fallbackInitials, photo }){
+function Avatar({ editKey, name, size = 96, gradientFrom = "#2f7dff", gradientTo = "#0d3b8c", fallbackInitials, photo, photoBg }){
   const { editMode } = useEditMode();
   const [imgSrc, setImgSrc] = useState(() => resolveImage(editKey) || photo || null);
   const inputRef = useRef(null);
@@ -731,7 +731,7 @@ function Avatar({ editKey, name, size = 96, gradientFrom = "#2f7dff", gradientTo
   };
 
   return (
-    <div className="avatar-wrap" style={{ width: size, height: size, fontSize: size * 0.36, background: imgSrc ? undefined : `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}>
+    <div className="avatar-wrap" style={{ width: size, height: size, fontSize: size * 0.36, background: imgSrc ? photoBg : `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}>
       {imgSrc ? <img src={imgSrc} alt={name} /> : <span>{fallbackInitials}</span>}
       {editMode && (
         <button type="button" className="avatar-edit-btn" title="Upload photo" onClick={() => inputRef.current && inputRef.current.click()}>📷 Upload</button>
@@ -853,7 +853,7 @@ const TEAM = {
     members: [
       { name: "Gagana Muralidhar", role: "Research Team Lead", lead:true, bio: "Oversees all research accuracy and direction across BioMation's projects, working across neuroscience, cardiology, genetics, and biomechanics to keep every visualization grounded in real science.", photo: "images/team/gagana.jpeg" },
       { name: "Shivika Srivastava", role: "Neurology Lead", bio: "Guides the neuroscience research pipeline, translating complex neural mechanisms into content the software dev team can accurately model and animate.", photo: "images/team/shivika.jpg" },
-      { name: "Nitya Anand", role: "Cardiology Lead", bio: "Leads cardiology research, ensuring the anatomy and function behind every heart model and simulation reflects current clinical understanding.", photo: "images/team/nitya.png" },
+      { name: "Nitya Anand", role: "Cardiology Lead", bio: "Leads cardiology research, ensuring the anatomy and function behind every heart model and simulation reflects current clinical understanding.", photo: "images/team/nitya.png", photoBg: "#000" },
       { name: "Adi Deodhar", role: "Cell Biology Lead", bio: "Drives cell biology research, breaking down cellular structures and processes for the Cell Bio project and future genetics work." },
     ]
   },
@@ -935,7 +935,7 @@ const FULL_TEAM = [
   { name: "Aadarshini Anand", team: "Research", photo: "images/team/aadarshini.png" },
   { name: "Adi Deodhar", team: "Research" },
   { name: "Gurshan Singh", team: "Research", photo: "images/team/gurshan.jpeg" },
-  { name: "Nitya Anand", team: "Research", photo: "images/team/nitya.png" },
+  { name: "Nitya Anand", team: "Research", photo: "images/team/nitya.png", photoBg: "#000" },
   { name: "Shriya Raman", team: "Research" },
   { name: "Subhashree Dey Sarkar", team: "Research" },
   { name: "Ria Jain", team: "Social Media" },
@@ -1553,7 +1553,7 @@ function FullTeamGrid(){
         <div className="full-team-grid">
           {FULL_TEAM.map((m, i) => (
             <div className="full-team-card fade-up" key={m.name + i} style={{ borderLeft: `5px solid ${teamColor(m.team)}` }}>
-              <Avatar editKey={"fullteam-" + i + "-photo"} name={m.name} size={52} gradientFrom={teamColor(m.team)} gradientTo={colorFor(m.name)} fallbackInitials={initials(m.name)} photo={m.photo} />
+              <Avatar editKey={"fullteam-" + i + "-photo"} name={m.name} size={52} gradientFrom={teamColor(m.team)} gradientTo={colorFor(m.name)} fallbackInitials={initials(m.name)} photo={m.photo} photoBg={m.photoBg} />
               <div>
                 <EditableText id={"fullteam-" + i + "-name"} as="div" className="ft-name" html={m.name} />
                 <span className="ft-team-badge" style={{ background: teamColor(m.team) }}>{m.team}</span>
@@ -1600,7 +1600,7 @@ function Team(){
             {group.members.map(m => (
               <div className="member-card fade-up" key={m.name}>
                 <div className="member-photo" style={{background: `linear-gradient(135deg, ${colorFor(m.name)}, ${group.color})`, height:150}}>
-                  <Avatar editKey={"lead-" + m.name.replace(/\s+/g,"-") + "-photo"} name={m.name} size={92} gradientFrom={colorFor(m.name)} gradientTo={group.color} fallbackInitials={initials(m.name)} photo={m.photo} />
+                  <Avatar editKey={"lead-" + m.name.replace(/\s+/g,"-") + "-photo"} name={m.name} size={92} gradientFrom={colorFor(m.name)} gradientTo={group.color} fallbackInitials={initials(m.name)} photo={m.photo} photoBg={m.photoBg} />
                 </div>
                 <div className="member-body">
                   <h4>{m.name}</h4>
