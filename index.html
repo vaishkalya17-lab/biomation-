@@ -741,9 +741,9 @@ function Avatar({ editKey, name, size = 96, gradientFrom = "#2f7dff", gradientTo
   );
 }
 
-function ProjectThumbnail({ editKey, name, icon, color }){
+function ProjectThumbnail({ editKey, name, icon, color, cover }){
   const { editMode } = useEditMode();
-  const [imgSrc, setImgSrc] = useState(() => resolveImage(editKey));
+  const [imgSrc, setImgSrc] = useState(() => resolveImage(editKey) || cover || null);
   const inputRef = useRef(null);
 
   const onFile = (e) => {
@@ -871,6 +871,7 @@ const TEAM = {
 const PROJECTS = [
   {
     slug: "cell-biology",
+    cover: "images/projects/cell-biology.jpg",
     title: "Cell Biology",
     field: "Cell Biology",
     color: "#2f7dff",
@@ -891,6 +892,7 @@ const PROJECTS = [
   },
   {
     slug: "neuroscience",
+    cover: "images/projects/neuroscience.jpg",
     title: "Neuroscience",
     field: "Neuroscience",
     color: "#7c5cff",
@@ -907,6 +909,7 @@ const PROJECTS = [
   },
   {
     slug: "cardiology",
+    cover: "images/projects/cardiology.jpg",
     title: "Cardiology",
     field: "Cardiology",
     color: "#ff5c7c",
@@ -1743,7 +1746,7 @@ function Projects({ initialSlug }){
                   onKeyDown={(e) => { if(e.key === "Enter" || e.key === " ") setOpenSlug(p.slug); }}
                 >
                   <div className="pcard-top">
-                    <ProjectThumbnail editKey={"project-" + p.slug + "-thumbnail"} name={p.title} icon={p.icon} color={p.color} />
+                    <ProjectThumbnail editKey={"project-" + p.slug + "-thumbnail"} name={p.title} icon={p.icon} color={p.color} cover={p.cover} />
                   </div>
                   <div className="pcard-body">
                     <span className={"project-status " + (p.status === "active" ? "status-active" : "status-progress")}>{p.status === "active" ? "Active" : "In Progress"}</span>
