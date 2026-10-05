@@ -97,7 +97,22 @@ details.note p{margin-top:6px}
   .hint{display:none}
 }
 @media (prefers-reduced-motion: reduce){.veil,.tag{transition:none}}
+/* Embedded on the website: keep the model clear, explanation sits below it (scroll down) */
+.mini,.scroll-cue{display:none}
+html.embedded,html.embedded body{height:auto}
+.embedded .app{height:auto;min-height:100%}
+.embedded main{flex-direction:column}
+.embedded .viewport{flex:none;height:calc(100vh - 50px);min-height:300px}
+.embedded aside.card{position:static;width:auto;max-height:none;margin:12px 16px 16px;box-shadow:none}
+.embedded .hint{display:none}
+.embedded .mini{display:flex;position:absolute;top:40px;right:16px;gap:6px;z-index:4}
+.mini .btn{height:28px;width:28px;border-radius:7px;background:color-mix(in srgb,var(--panel) 86%,transparent);backdrop-filter:blur(4px)}
+.mini .btn svg{width:11px;height:11px}
+.embedded .scroll-cue{display:block;position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:4;
+  font-family:var(--f-mono);font-size:11.5px;letter-spacing:.04em;color:var(--fg);white-space:nowrap;
+  background:color-mix(in srgb,var(--panel) 86%,transparent);border:1px solid var(--line);border-radius:999px;padding:6px 14px;backdrop-filter:blur(4px);pointer-events:none}
 </style>
+<script>try{if(window.self!==window.top)document.documentElement.classList.add('embedded')}catch(e){document.documentElement.classList.add('embedded')}</script>
 
 </head>
 <body>
@@ -112,6 +127,12 @@ details.note p{margin-top:6px}
       <div class="veil" id="veil"></div>
       <nav class="rail" id="rail" aria-label="Stages"></nav>
       <div class="hint">Drag to rotate · scroll to zoom · ← → to step</div>
+      <div class="mini" aria-label="Quick controls">
+        <button class="btn icon" id="miniPrev" aria-label="Previous stage"><svg viewBox="0 0 16 16"><path d="M10.5 2.5 4.5 8l6 5.5z"/></svg></button>
+        <button class="btn icon" id="miniPlay" aria-label="Pause"><svg viewBox="0 0 16 16" id="miniPlayIcon"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button>
+        <button class="btn icon" id="miniNext" aria-label="Next stage"><svg viewBox="0 0 16 16"><path d="M5.5 2.5 11.5 8l-6 5.5z"/></svg></button>
+      </div>
+      <div class="scroll-cue">Scroll down to read about each step ↓</div>
       <div class="loading" id="loading">Loading models…</div>
     </div>
     <aside class="card" aria-live="polite">
@@ -845,7 +866,7 @@ function stageState(i) {
   if (!groups[i]) { const g = new THREE.Group(), st = { labels: [] }; stages[i].build(g, st); g.visible = false; scene.add(g); groups[i] = { g, st, tags: st.labels.map(l => { const el = document.createElement('div'); el.className = 'tag'; el.innerHTML = '<i></i><span></span>'; el.style.opacity = 0; tagsEl.appendChild(el); return el; }) }; }
   return groups[i];
 }
-function setPlayIcon() { $('#playIcon').innerHTML = playing ? '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>' : (t >= 1 ? '<path d="M8 2.5a5.5 5.5 0 1 1-5.2 3.7l1.6.6A3.8 3.8 0 1 0 8 4.2V6.5L4.5 3.4 8 .3z"/>' : '<path d="M4 2.5 13 8l-9 5.5z"/>'); $('#play').setAttribute('aria-label', playing ? 'Pause' : (t >= 1 ? 'Replay stage' : 'Play')); }
+function setPlayIcon() { $('#miniPlay').setAttribute('aria-label', playing ? 'Pause' : 'Play'); $('#miniPlayIcon').innerHTML = $('#playIcon').innerHTML = playing ? '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>' : (t >= 1 ? '<path d="M8 2.5a5.5 5.5 0 1 1-5.2 3.7l1.6.6A3.8 3.8 0 1 0 8 4.2V6.5L4.5 3.4 8 .3z"/>' : '<path d="M4 2.5 13 8l-9 5.5z"/>'); $('#play').setAttribute('aria-label', playing ? 'Pause' : (t >= 1 ? 'Replay stage' : 'Play')); }
 function render_text(i) {
   const s = stages[i];
   $('#stageNum').textContent = `${String(i + 1).padStart(2, '0')} / ${N}`;
@@ -853,7 +874,7 @@ function render_text(i) {
   $('#text').innerHTML = s.text.map(p => `<p>${p}</p>`).join(''); $('#src').textContent = s.src ? `Adapted from the team research article: ${s.src}` : '';
   $('#legend').innerHTML = s.legend.map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join('');
   $('#noteWrap').hidden = !s.note; $('#note').textContent = s.note || '';
-  $('#prev').disabled = i === 0;
+  $('#prev').disabled = $('#miniPrev').disabled = i === 0;
   $('#next').innerHTML = i === N - 1 ? 'Start over <svg viewBox="0 0 16 16"><path d="M8 2.5a5.5 5.5 0 1 1-5.2 3.7l1.6.6A3.8 3.8 0 1 0 8 4.2V6.5L4.5 3.4 8 .3z"/></svg>' : 'Next <svg viewBox="0 0 16 16"><path d="M5.5 2.5 11.5 8l-6 5.5z"/></svg>';
   [...rail.children].forEach((b, j) => { b.classList.toggle('done', j < i); if (j === i) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current'); });
 }
@@ -875,6 +896,9 @@ function go(i) {
 $('#prev').onclick = () => go(cur - 1);
 $('#next').onclick = () => go(cur + 1);
 $('#play').onclick = () => { if (t >= 1) t = 0; playing = !playing; setPlayIcon(); };
+$('#miniPrev').onclick = () => go(cur - 1);
+$('#miniNext').onclick = () => go(cur + 1);
+$('#miniPlay').onclick = () => $('#play').click();
 const scrub = $('#scrub');
 scrub.addEventListener('input', () => { t = scrub.value / 1000; playing = false; setPlayIcon(); });
 addEventListener('keydown', e => { if (e.target.closest('input,textarea')) return; if (e.key === 'ArrowRight') go(cur + 1); else if (e.key === 'ArrowLeft') go(cur - 1); else if (e.key === ' ' && e.target === document.body) { e.preventDefault(); $('#play').click(); } });
