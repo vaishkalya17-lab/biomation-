@@ -110,7 +110,14 @@ html.embedded,html.embedded body{height:auto}
 .mini .btn svg{width:11px;height:11px}
 .embedded .scroll-cue{display:block;position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:4;
   font-family:var(--f-mono);font-size:11.5px;letter-spacing:.04em;color:var(--fg);white-space:nowrap;
-  background:color-mix(in srgb,var(--panel) 86%,transparent);border:1px solid var(--line);border-radius:999px;padding:6px 14px;backdrop-filter:blur(4px);pointer-events:none}
+  background:color-mix(in srgb,var(--panel) 86%,transparent);border:1px solid var(--line);border-radius:999px;padding:6px 14px;backdrop-filter:blur(4px);cursor:pointer}
+.scroll-cue:hover{border-color:var(--accent)}
+.scroll-cue:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fs-tip{display:none}
+.embedded .fs-tip{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin:16px 16px 0;padding:10px 14px;border:1px solid var(--accent);border-radius:10px;
+  background:color-mix(in srgb,var(--accent) 12%,var(--panel));font-size:13.5px}
+.fs-tip a{color:var(--accent);font-weight:700;white-space:nowrap}
 </style>
 <script>try{if(window.self!==window.top)document.documentElement.classList.add('embedded')}catch(e){document.documentElement.classList.add('embedded')}</script>
 
@@ -132,9 +139,10 @@ html.embedded,html.embedded body{height:auto}
         <button class="btn icon" id="miniPlay" aria-label="Pause"><svg viewBox="0 0 16 16" id="miniPlayIcon"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button>
         <button class="btn icon" id="miniNext" aria-label="Next stage"><svg viewBox="0 0 16 16"><path d="M5.5 2.5 11.5 8l-6 5.5z"/></svg></button>
       </div>
-      <div class="scroll-cue">Scroll down to read about each step ↓</div>
+      <button type="button" class="scroll-cue" id="toText">Read about this step ↓</button>
       <div class="loading" id="loading">Loading models…</div>
     </div>
+    <div class="fs-tip" id="fsTip"><span>You're viewing this inside the page. For the best experience, open it in fullscreen.</span><a href="#" id="fsLink">Open Fullscreen ↗</a></div>
     <aside class="card" aria-live="polite">
       <div class="body">
         <div class="kicker"><span class="n" id="stageNum">01 / 14</span><span id="kicker">The target</span></div>
@@ -894,7 +902,10 @@ function go(i) {
   veil.classList.add('on'); setTimeout(() => { activate(i); veil.classList.remove('on'); }, 230);
 }
 $('#prev').onclick = () => go(cur - 1);
-$('#next').onclick = () => go(cur + 1);
+const embedded = document.documentElement.classList.contains('embedded');
+$('#next').onclick = () => { go(cur + 1); if (embedded) window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); };
+$('#toText').onclick = () => $('#fsTip').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+$('#fsLink').onclick = e => { e.preventDefault(); window.open(location.href.split('#')[0] + '#stage-' + (cur + 1), '_blank', 'noopener'); };
 $('#play').onclick = () => { if (t >= 1) t = 0; playing = !playing; setPlayIcon(); };
 $('#miniPrev').onclick = () => go(cur - 1);
 $('#miniNext').onclick = () => go(cur + 1);
