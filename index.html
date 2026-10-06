@@ -1782,6 +1782,10 @@ function Projects({ initialSlug }){
   );
 }
 
+// Contact form delivery: paste the Web3Forms access key for biomation12@gmail.com here
+// (free at web3forms.com). While empty, the form falls back to FormSubmit.
+const WEB3FORMS_KEY = "";
+
 function Contact(){
   useReveal();
   const [status, setStatus] = useState("idle"); // idle | sending | sent | error
@@ -1791,20 +1795,40 @@ function Contact(){
     const data = Object.fromEntries(new FormData(form).entries());
     if (data._honey) return; // spam bot filled the hidden field
     setStatus("sending");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000); // never leave the button stuck
+    const subject = "BioMation website message: " + data.topic + " from " + data.first_name + " " + data.last_name;
     try {
-      const res = await fetch("https://formsubmit.co/ajax/biomation12@gmail.com", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          _subject: "BioMation website message: " + data.topic + " from " + data.first_name + " " + data.last_name,
-          _replyto: data.email,
-          _template: "table",
-          Name: data.first_name + " " + data.last_name,
-          Email: data.email,
-          Topic: data.topic,
-          Message: data.message,
-        }),
-      });
+      const res = WEB3FORMS_KEY
+        ? await fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            signal: controller.signal,
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify({
+              access_key: WEB3FORMS_KEY,
+              subject,
+              from_name: "BioMation Website",
+              replyto: data.email,
+              Name: data.first_name + " " + data.last_name,
+              Email: data.email,
+              Topic: data.topic,
+              Message: data.message,
+            }),
+          })
+        : await fetch("https://formsubmit.co/ajax/b29b7a32f6f784fbbd0f88b16296b247", {
+            method: "POST",
+            signal: controller.signal,
+            headers: { "Content-Type": "application/json", "Accept": "application/json" },
+            body: JSON.stringify({
+              _subject: subject,
+              _replyto: data.email,
+              _template: "table",
+              Name: data.first_name + " " + data.last_name,
+              Email: data.email,
+              Topic: data.topic,
+              Message: data.message,
+            }),
+          });
       const out = await res.json().catch(() => ({}));
       if (!res.ok || out.success === false || out.success === "false") throw new Error(out.message || "Send failed");
       setStatus("sent");
@@ -1812,8 +1836,11 @@ function Contact(){
       setTimeout(() => setStatus("idle"), 6000);
     } catch (err) {
       setStatus("error");
+    } finally {
+      clearTimeout(timer);
     }
   };
+
   return (
     <div className="page-enter">
       <section style={{paddingTop:64, paddingBottom:40, background:"linear-gradient(180deg, var(--blue-pale), #fff)"}}>
