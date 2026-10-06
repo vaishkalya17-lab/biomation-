@@ -184,7 +184,7 @@ html.in-intro aside.card,html.in-intro .fs-tip,html.in-intro .scroll-cue,html.in
         <details class="note"><summary>References</summary><p>Zhang, L., More, K. R., Ojha, A., Jackson, C. B., Quinlan, B. D., Li, H., He, W., Farzan, M., Pardi, N., &amp; Choe, H. (2023). Effect of mRNA-LNP components of two globally-marketed COVID-19 vaccines on efficacy and stability. <i>NPJ Vaccines, 8</i>(1), 156.</p><p>Haque, M. A., Shrestha, A., Mikelis, C. M., &amp; Mattheolabakis, G. (2024). Comprehensive analysis of lipid nanoparticle formulation and preparation for RNA delivery. <i>International Journal of Pharmaceutics: X, 8</i>, 100283.</p></details>
         <details class="note" id="credits"><summary>Credits</summary>
           <dl class="credits">
-            <dt>Simulation</dt><dd>Vaishnavi Kalyanashetty, with contributions from Sanshray Vakkalagadda and Anirudh J Yadrami</dd>
+            <dt>Simulation</dt><dd>Vaishnavi Kalyanashetty, with contributions from Sanshray Vakkalagadda (step 7) and Anirudh J Yadrami (step 12)</dd>
             <dt>Injection animation</dt><dd>Aashika Kumar</dd>
             <dt>3D models</dt><dd>Credited at the top of the view as each model appears</dd>
           </dl>
@@ -930,10 +930,13 @@ const MODEL_CREDITS = [
   [['Spike protein', VK], ['B cell', GM]],
   [['Plasma cell', VK], ['B cells, memory B cells, SARS-CoV-2 virus', GM]],
 ];
+// Stage simulations built by contributors other than the lead (step number -> name)
+const SIM_CREDITS = { 7: 'Sanshray Vakkalagadda', 12: 'Anirudh J Yadrami' };
 function render_credit(i) {
-  const c = MODEL_CREDITS[i] || [], el = $('#modelCredit');
-  el.hidden = !c.length;
-  el.innerHTML = '<span class="mc-label">3D models</span>' + c.map(([what, who]) => `${what} <b>by ${who}</b>`).join('<br>');
+  const c = MODEL_CREDITS[i] || [], sim = SIM_CREDITS[i + 1], el = $('#modelCredit');
+  el.hidden = !c.length && !sim;
+  el.innerHTML = (c.length ? '<span class="mc-label">3D models</span>' + c.map(([what, who]) => `${what} <b>by ${who}</b>`).join('<br>') : '')
+    + (sim ? `<span class="mc-label"${c.length ? ' style="margin-top:6px"' : ''}>Simulation</span>This step <b>by ${sim}</b>` : '');
 }
 function render_text(i) {
   render_credit(i);
