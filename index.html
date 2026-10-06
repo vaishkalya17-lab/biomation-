@@ -1784,12 +1784,35 @@ function Projects({ initialSlug }){
 
 function Contact(){
   useReveal();
-  const [sent, setSent] = useState(false);
-  const onSubmit = (e) => {
+  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
-    setTimeout(() => setSent(false), 5000);
-    e.target.reset();
+    const form = e.target;
+    const data = Object.fromEntries(new FormData(form).entries());
+    if (data._honey) return; // spam bot filled the hidden field
+    setStatus("sending");
+    try {
+      const res = await fetch("https://formsubmit.co/ajax/biomation12@gmail.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          _subject: "BioMation website message: " + data.topic + " from " + data.first_name + " " + data.last_name,
+          _replyto: data.email,
+          _template: "table",
+          Name: data.first_name + " " + data.last_name,
+          Email: data.email,
+          Topic: data.topic,
+          Message: data.message,
+        }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok || out.success === false || out.success === "false") throw new Error(out.message || "Send failed");
+      setStatus("sent");
+      form.reset();
+      setTimeout(() => setStatus("idle"), 6000);
+    } catch (err) {
+      setStatus("error");
+    }
   };
   return (
     <div className="page-enter">
@@ -1826,14 +1849,14 @@ function Contact(){
             <div className="form-card fade-up">
               <form onSubmit={onSubmit}>
                 <div className="form-row">
-                  <div className="field"><label>First name</label><input required placeholder="Jane" /></div>
-                  <div className="field"><label>Last name</label><input required placeholder="Doe" /></div>
+                  <div className="field"><label>First name</label><input name="first_name" required placeholder="Jane" /></div>
+                  <div className="field"><label>Last name</label><input name="last_name" required placeholder="Doe" /></div>
                 </div>
                 <div className="form-row">
-                  <div className="field"><label>Email</label><input required type="email" placeholder="you@example.com" /></div>
+                  <div className="field"><label>Email</label><input name="email" required type="email" placeholder="you@example.com" /></div>
                   <div className="field">
                     <label>I'm reaching out about</label>
-                    <select>
+                    <select name="topic">
                       <option>General inquiry</option>
                       <option>Joining a team</option>
                       <option>School / workshop</option>
@@ -1843,10 +1866,16 @@ function Contact(){
                 </div>
                 <div className="field" style={{marginBottom:16}}>
                   <label>Message</label>
-                  <textarea required placeholder="Tell us a bit about what you're looking for..."></textarea>
+                  <textarea name="message" required placeholder="Tell us a bit about what you're looking for..."></textarea>
                 </div>
-                <button className="btn btn-primary" type="submit">Send Message →</button>
-                <div className={"form-success" + (sent ? " show" : "")}>✓ Thanks — we'll get back to you soon.</div>
+                <input type="text" name="_honey" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ display: "none" }} />
+                <button className="btn btn-primary" type="submit" disabled={status === "sending"}>{status === "sending" ? "Sending…" : "Send Message →"}</button>
+                <div className={"form-success" + (status === "sent" ? " show" : "")}>✓ Thanks! Your message was sent and we'll get back to you soon.</div>
+                {status === "error" && (
+                  <p style={{ color: "#c0392b", marginTop: 12, fontSize: 14.5 }}>
+                    Sorry, your message couldn't be sent. Please email us directly at <a href="mailto:biomation12@gmail.com">biomation12@gmail.com</a>.
+                  </p>
+                )}
               </form>
             </div>
           </div>
