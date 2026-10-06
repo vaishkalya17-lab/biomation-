@@ -55,7 +55,7 @@ canvas#gl:active{cursor:grabbing}
 .rail button[aria-current="step"]::after{background:var(--accent);height:6px;top:8px}
 .rail button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 .hint{position:absolute;right:16px;top:40px;font-family:var(--f-mono);font-size:11px;color:var(--muted);pointer-events:none}
-aside.card{position:absolute;left:16px;bottom:16px;width:min(400px,calc(100% - 32px));max-height:calc(100% - 72px);overflow:auto;z-index:3;
+aside.card{position:absolute;left:16px;bottom:16px;width:min(400px,calc(100% - 32px));max-height:calc(100% - 150px);overflow:auto;z-index:3;
   background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -20px rgb(0 0 0 / .45);display:flex;flex-direction:column}
 .card .body{padding:18px 18px 12px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .kicker{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);display:flex;gap:10px;align-items:center}
@@ -73,6 +73,13 @@ details.note p{margin-top:6px}
 .credits dd{margin:0;color:var(--fg);font-size:13px}
 .credits b{font-weight:700}
 .credits-btn{height:30px;font-size:12px}
+.model-credit{position:absolute;top:40px;left:16px;z-index:4;max-width:min(440px,calc(100% - 140px));pointer-events:none;
+  background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);border-radius:10px;padding:7px 11px;
+  backdrop-filter:blur(4px);font-size:12px;line-height:1.45;color:var(--fg);transition:opacity .25s}
+.model-credit .mc-label{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+.model-credit b{font-weight:700}
+html.in-intro .model-credit{display:none}
+@media (max-width:760px){.model-credit{max-width:calc(100% - 32px);font-size:11.5px}}
 html.in-intro .credits-btn{display:none}
 .fig img{display:block;width:100%;max-width:100%;margin-top:8px;border-radius:8px;background:#fff;cursor:zoom-in;border:1px solid var(--line)}
 .fig p{font-size:11px;font-family:var(--f-mono)}
@@ -148,6 +155,7 @@ html.in-intro aside.card,html.in-intro .fs-tip,html.in-intro .scroll-cue,html.in
       <div class="veil" id="veil"></div>
       <nav class="rail" id="rail" aria-label="Stages"></nav>
       <div class="hint">Drag to rotate · scroll to zoom · ← → to step</div>
+      <div class="model-credit" id="modelCredit" aria-live="polite"></div>
       <div class="mini" aria-label="Quick controls">
         <button class="btn icon" id="miniPrev" aria-label="Previous stage"><svg viewBox="0 0 16 16"><path d="M10.5 2.5 4.5 8l6 5.5z"/></svg></button>
         <button class="btn icon" id="miniPlay" aria-label="Pause"><svg viewBox="0 0 16 16" id="miniPlayIcon"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button>
@@ -178,10 +186,7 @@ html.in-intro aside.card,html.in-intro .fs-tip,html.in-intro .scroll-cue,html.in
           <dl class="credits">
             <dt>Simulation</dt><dd>Vaishnavi Kalyanashetty, with contributions from Sanshray Vakkalagadda and Anirudh J Yadrami</dd>
             <dt>Injection animation</dt><dd>Aashika Kumar</dd>
-            <dt>3D models</dt>
-            <dd><b>Vaishnavi Kalyanashetty:</b> all five LNP structures, human cell, spike protein, plasma cell, endosomal membrane</dd>
-            <dd><b>Sahana Ramkumar:</b> ribosome, mRNA</dd>
-            <dd><b>Gagana Muralidhar:</b> all other models</dd>
+            <dt>3D models</dt><dd>Credited at the top of the view as each model appears</dd>
           </dl>
         </details>
       </div>
@@ -907,7 +912,31 @@ function stageState(i) {
   return groups[i];
 }
 function setPlayIcon() { $('#miniPlay').setAttribute('aria-label', playing ? 'Pause' : 'Play'); $('#miniPlayIcon').innerHTML = $('#playIcon').innerHTML = playing ? '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>' : (t >= 1 ? '<path d="M8 2.5a5.5 5.5 0 1 1-5.2 3.7l1.6.6A3.8 3.8 0 1 0 8 4.2V6.5L4.5 3.4 8 .3z"/>' : '<path d="M4 2.5 13 8l-9 5.5z"/>'); $('#play').setAttribute('aria-label', playing ? 'Pause' : (t >= 1 ? 'Replay stage' : 'Play')); }
+// 3D model credits for each stage: [models shown, modeler]
+const VK = 'Vaishnavi Kalyanashetty', SR = 'Sahana Ramkumar', GM = 'Gagana Muralidhar';
+const MODEL_CREDITS = [
+  [['SARS-CoV-2 virus', GM], ['Spike protein', VK]],
+  [['All five LNP structures', VK]],
+  [['Lipid nanoparticle', VK], ['mRNA', SR]],
+  [['Human cell, lipid nanoparticle', VK]],
+  [['Lipid nanoparticle, membrane', VK]],
+  [['Lipid nanoparticle, endosomal membrane', VK]],
+  [['Lipid nanoparticle, endosomal membrane', VK]],
+  [['Endosomal membrane', VK], ['mRNA', SR]],
+  [['Ribosome, mRNA', SR]],
+  [['Spike protein, membrane', VK]],
+  [['Spike protein', VK], ['MHC molecules', GM]],
+  [['MHC molecules, helper T cell', GM]],
+  [['Spike protein', VK], ['B cell', GM]],
+  [['Plasma cell', VK], ['B cells, memory B cells, SARS-CoV-2 virus', GM]],
+];
+function render_credit(i) {
+  const c = MODEL_CREDITS[i] || [], el = $('#modelCredit');
+  el.hidden = !c.length;
+  el.innerHTML = '<span class="mc-label">3D models</span>' + c.map(([what, who]) => `${what} <b>by ${who}</b>`).join('<br>');
+}
 function render_text(i) {
+  render_credit(i);
   const s = stages[i];
   $('#stageNum').textContent = `${String(i + 1).padStart(2, '0')} / ${N}`;
   $('#kicker').textContent = s.kicker; $('#title').textContent = s.title;
