@@ -507,6 +507,7 @@
     border-radius:14px;padding:12px 16px;transition:all .25s ease;
   }
   .clickable{cursor:pointer;}
+  .ft-role{font-size:12.5px;color:var(--text-soft);margin:1px 0 5px;line-height:1.35;}
   .clickable:focus-visible{outline:3px solid var(--blue);outline-offset:3px;}
   .member-modal{position:fixed;inset:0;z-index:1000;background:rgba(8,18,40,0.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;}
   .member-panel{position:relative;background:#fff;width:min(560px,100%);max-height:92vh;overflow-y:auto;border-radius:24px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);}
@@ -910,7 +911,7 @@ const TEAM = {
     color: "#123a7a",
     blurb: "Transforms research into interactive digital formats — 3D CAD models, animations, and coded experiences — and manages the website and its distribution.",
     members: [
-      { name: "Vaishnavi Kalyanashetty", role: "Tech Director", lead:true, bio: "Leads BioMation's technical work and builds much of it hands-on: managing the entire CAD pipeline, designing a large share of the 3D models, and shaping the website itself.", photo: "images/team/vaishnavi-photo.jpg" },
+      { name: "Vaishnavi Kalyanashetty", role: "Technology Director & Founder", lead:true, bio: "Leads BioMation's technical work and builds much of it hands-on: managing the entire CAD pipeline, designing a large share of the 3D models, and shaping the website itself.", photo: "images/team/vaishnavi-photo.jpg" },
       { name: "Aashika Kumar", role: "Animation Specialist", bio: "Creates visually engaging animations that turn static research and 3D models into compelling educational content.", photo: "images/team/aashika.png" },
       { name: "Sanshray Vakkalagadda", role: "Software Developer / UI-UX Designer", bio: "Builds the web platforms, interactive apps, and simulations — making sure everything is user-friendly, educational, and visually clean.", photo: "images/team/sanshray.jpg" },
     ]
@@ -920,7 +921,7 @@ const TEAM = {
     color: "#145c36",
     blurb: "Collects and provides cutting-edge research across biological fields, simplifies findings for the visualization teams, and ensures every model and animation is scientifically accurate.",
     members: [
-      { name: "Gagana Muralidhar", role: "Research Team Lead", lead:true, bio: "Leads BioMation's research and does much of it hands-on: writing many of the project articles across neuroscience, cardiology, genetics, and biomechanics, and keeping every visualization grounded in real science.", photo: "images/team/gagana.jpeg" },
+      { name: "Gagana Muralidhar", role: "Research Lead & Founder", lead:true, bio: "Leads BioMation's research and does much of it hands-on: writing many of the project articles across neuroscience, cardiology, genetics, and biomechanics, and keeping every visualization grounded in real science.", photo: "images/team/gagana.jpeg" },
       { name: "Shivika Srivastava", role: "Neurology Lead", bio: "Guides the neuroscience research pipeline, translating complex neural mechanisms into content the software dev team can accurately model and animate.", photo: "images/team/shivika.jpg" },
       { name: "Nitya Anand", role: "Cardiology Lead", bio: "Leads cardiology research, ensuring the anatomy and function behind every heart model and simulation reflects current clinical understanding.", photo: "images/team/nitya.png", photoBg: "#6b6b6b" },
       { name: "Adi Deodhar", role: "Cell Biology Lead", bio: "Drives cell biology research, breaking down cellular structures and processes for the Cell Bio project and future genetics work.", photo: "images/team/adi.png" },
@@ -1126,23 +1127,23 @@ const FOUNDERS_STORY_DEFAULT = "BioMation was founded by Vaishnavi Kalyanashetty
 
 const FULL_TEAM = [
   { name: "Vaishnavi Kalyanashetty", team: "Technology", photo: "images/team/vaishnavi-photo.jpg" },
-  { name: "Sahana Ramkumar", team: "Technology", photo: "images/team/sahana.png" },
+  { name: "Sahana Ramkumar", role: "CAD Modeler", subteam: "CAD", blurb: "Builds 3D CAD models for BioMation’s simulations, including the ribosome and mRNA in the mRNA Vaccine Journey.", team: "Technology", photo: "images/team/sahana.png" },
   { name: "Aashika Kumar", team: "Technology", photo: "images/team/aashika.png" },
-  { name: "Sanshray Vakkalagadda", team: "Technology", photo: "images/team/sanshray.jpg" },
-  { name: "Anirudh J Yadrami", team: "Technology", photo: "images/team/Anirudh.JPG.jpeg" },
+  { name: "Sanshray Vakkalagadda", subteam: "Software Dev", team: "Technology", photo: "images/team/sanshray.jpg" },
+  { name: "Anirudh J Yadrami", role: "Software Developer", subteam: "Software Dev", blurb: "Helps design and build the BioMation website and developed a step of the mRNA Vaccine Journey simulation.", team: "Technology", photo: "images/team/Anirudh.JPG.jpeg" },
   { name: "Gagana Muralidhar", team: "Research", photo: "images/team/gagana.jpeg" },
   { name: "Shivika Srivastava", team: "Research", photo: "images/team/shivika.jpg" },
-  { name: "Riddhima Ghosh", team: "Research", photo: "images/team/riddhima.png" },
-  { name: "Aadarshini Anand", team: "Research", photo: "images/team/aadarshini.png" },
+  { name: "Riddhima Ghosh", role: "Neuroscience Researcher", blurb: "Researches how lipid nanoparticles interact with the nervous system and co-wrote BioMation’s Neuroscience article.", team: "Research", photo: "images/team/riddhima.png" },
+  { name: "Aadarshini Anand", role: "Neuroscience Researcher", blurb: "Researches how lipid nanoparticles reach the brain and co-wrote BioMation’s Neuroscience article.", team: "Research", photo: "images/team/aadarshini.png" },
   { name: "Adi Deodhar", team: "Research", photo: "images/team/adi.png" },
-  { name: "Gurshan Singh", team: "Research", photo: "images/team/gurshan.jpeg" },
+  { name: "Gurshan Singh", role: "Cell Biology Researcher", blurb: "Researches how mRNA vaccines and lipid nanoparticles work inside the cell and co-wrote BioMation’s Cell Biology article.", team: "Research", photo: "images/team/gurshan.jpeg" },
   { name: "Nitya Anand", team: "Research", photo: "images/team/nitya.png", photoBg: "#6b6b6b" },
-  { name: "Shriya Raman", team: "Research", photo: "images/team/shriya.png" },
-  { name: "Subhashree Dey Sarkar", team: "Research", photo: "images/team/subhashree.png" },
+  { name: "Shriya Raman", role: "Cardiology Researcher", blurb: "Researches the cardiovascular effects of COVID-19 vaccines and co-wrote BioMation’s Cardiology article.", team: "Research", photo: "images/team/shriya.png" },
+  { name: "Subhashree Dey Sarkar", role: "Cardiology Researcher", blurb: "Researches the cardiovascular effects of COVID-19 vaccines and co-wrote BioMation’s Cardiology article.", team: "Research", photo: "images/team/subhashree.png" },
   { name: "Ria Jain", team: "Social Media", photo: "images/team/ria jain id photo.jpg" },
-  { name: "Aarnav Ramkumar", team: "Social Media", photo: "images/team/aarnav.png" },
+  { name: "Aarnav Ramkumar", role: "Social Media Member", blurb: "Helps create and share BioMation’s posts, turning the team’s research and models into engaging content.", team: "Social Media", photo: "images/team/aarnav.png" },
   { name: "Akhil Mandaleeka", team: "Social Media", photo: "images/team/akhil.png" },
-  { name: "Hasita Aela", team: "Social Media", photo: "images/team/hasita.jpeg" },
+  { name: "Hasita Aela", role: "Social Media Member", blurb: "Helps create and share BioMation’s posts, turning the team’s research and models into engaging content.", team: "Social Media", photo: "images/team/hasita.jpeg" },
 ];
 
 function teamColor(team){
@@ -1764,6 +1765,8 @@ function MemberModal({ member, onClose }){
     return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
   }, [onClose]);
   const lead = leadInfo(member.name);
+  const listed = FULL_TEAM.find(x => x.name === member.name);
+  if(listed && listed.subteam && !member.subteam) member = { ...member, subteam: listed.subteam };
   const team = member.team || (lead && lead.team);
   const photo = member.photo || (lead && lead.photo);
   const photoBg = member.photoBg || (lead && lead.photoBg);
@@ -1779,9 +1782,9 @@ function MemberModal({ member, onClose }){
         </div>
         <div className="member-info">
           <h3>{member.name}</h3>
-          <span className="member-team-badge" style={{ background: color }}>{TEAM_NAMES[team] || team}</span>
-          {lead && <div className="member-modal-role">{lead.role}</div>}
-          {lead && lead.bio && <p>{lead.bio}</p>}
+          <span className="member-team-badge" style={{ background: color }}>{(TEAM_NAMES[team] || team) + (member.subteam ? " · " + member.subteam : "")}</span>
+          {(lead ? lead.role : member.role) && <div className="member-modal-role">{lead ? lead.role : member.role}</div>}
+          {(lead ? lead.bio : member.blurb) && <p>{lead ? lead.bio : member.blurb}</p>}
         </div>
       </div>
     </div>,
@@ -1809,6 +1812,7 @@ function FullTeamGrid(){
               <Avatar editKey={"fullteam-" + i + "-photo"} name={m.name} size={52} gradientFrom={teamColor(m.team)} gradientTo={colorFor(m.name)} fallbackInitials={initials(m.name)} photo={m.photo} photoBg={m.photoBg} />
               <div>
                 <EditableText id={"fullteam-" + i + "-name"} as="div" className="ft-name" html={m.name} />
+                <div className="ft-role">{(leadInfo(m.name) || m).role}</div>
                 <span className="ft-team-badge" style={{ background: teamColor(m.team) }}>{m.team}</span>
               </div>
             </div>
