@@ -890,7 +890,6 @@ const PROJECTS = [
     simulationUrl: "vaccine-journey_5.html",
     abstract: "An interactive exploration of the cell as a living system — from the fluid mosaic of the membrane to the machinery of the mitochondria. This project translates core cell biology into a rotatable 3D model, letting students explore organelle structure and function the way they'd explore a building's floor plan.",
     latestUpdate: "The CAD team just finished the first full pass on the organelle layout — membrane, nucleus, and mitochondria are all in place and ready for texturing.",
-    tags: ["Organelles", "Membrane Transport", "Mitochondria", "Cell Signaling"],
     articles: [
       { title: "The Fluid Mosaic Model, Revisited", type: "Doc" },
       { title: "How Mitochondria Power the Cell", type: "Doc" },
@@ -910,7 +909,6 @@ const PROJECTS = [
     model: "neuron",
     abstract: "BioMation's neuroscience track visualizes the neuron and the signals that travel through it — from dendrite to axon terminal. The long-term goal is a full interactive model of synaptic transmission and simple neural circuits, led by our neurology specialist.",
     latestUpdate: "Research on synaptic transmission is underway — the first 3D neuron model is in early modeling stages with the CAD team.",
-    tags: ["Neurons", "Synapses", "Action Potentials", "Neural Circuits"],
     articles: [
       { title: "Anatomy of a Neuron, Simplified", type: "Doc" },
     ],
@@ -927,7 +925,6 @@ const PROJECTS = [
     model: "heart",
     abstract: "This project builds toward a fully interactive human heart — chambers, valves, and the electrical conduction system that keeps it beating. Our cardiology specialist is leading research that will anchor the CAD team's 3D model and future animations of blood flow.",
     latestUpdate: "Research on the cardiac conduction system is wrapping up — chambers and valves are being blocked out next for the 3D model.",
-    tags: ["Chambers & Valves", "Conduction System", "Blood Flow", "Cardiac Cycle"],
     articles: [],
     newsletters: [],
   },
@@ -1649,9 +1646,6 @@ function ProjectExpanded({ project, onClose }){
       <button type="button" className="back-to-projects" onClick={onClose}>← Back to Projects</button>
 
       <span className={"project-status " + (project.status === "active" ? "status-active" : "status-progress")}>{project.status === "active" ? "Active Project" : "In Progress"}</span>
-      <h2 style={{ margin: "14px 0 16px" }}>{project.title}</h2>
-      <div className="field-badges" style={{ marginBottom: 22 }}>
-        {project.tags.map(t => <span key={t} className="field-badge">{t}</span>)}
       </div>
 
       <EditableText id={"project-" + project.slug + "-abstract"} as="p" className="abstract" html={project.abstract} style={{ maxWidth: 820, marginBottom: 32 }} />
