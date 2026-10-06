@@ -332,6 +332,7 @@
   .article-tile .at-ico{font-size:24px;flex:none;}
   .article-tile .at-kicker{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:3px;}
   .article-tile .at-title{display:block;font-weight:700;font-size:14.5px;line-height:1.35;}
+  .article-tile .at-by{display:block;font-size:12.5px;color:var(--text-soft);margin-top:4px;line-height:1.4;}
   .article-tile .at-go{margin-left:auto;font-weight:700;color:var(--blue-deep);flex:none;}
   .article-link{background:none;border:none;padding:0;font:inherit;color:var(--blue-deep);font-weight:600;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:3px;}
   .article-modal{position:fixed;inset:0;z-index:1000;background:rgba(8,18,40,0.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;}
@@ -339,6 +340,7 @@
   .article-head{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--line);flex:none;}
   .article-head .ah-text{min-width:0;margin-right:auto;}
   .article-head .ah-kicker{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-deep);}
+  .article-head .ah-by{font-size:13.5px;color:var(--text-soft);margin-top:4px;}
   .article-head h3{font-size:18px;color:var(--navy);margin:2px 0 0;line-height:1.3;}
   .article-head .btn-sm{flex:none;font-family:inherit;font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--navy);cursor:pointer;text-decoration:none;white-space:nowrap;}
   .article-head .btn-sm:hover{border-color:var(--blue);}
@@ -922,6 +924,11 @@ const ARTICLES = {
   "covid-vaccines": {
     "title": "COVID-19 Vaccines: How mRNA and Lipid Nanoparticles Work",
     "kicker": "Cell Biology · Article",
+    "authors": [
+      "Adi Deodhar",
+      "Gurshan Singh",
+      "Gagana Muralidhar"
+    ],
     "pdf": "articles/covid-vaccines-cell-bio.pdf",
     "paragraphs": [
       "The Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) responsible for the Covid-19 pandemic marked a period of revolutionary synthetic and biochemical innovation due to its intense efforts to develop a vaccine. The two notable vaccines: Comirnaty and SpikeVax developed by Pfizer-BioNTech and Moderna, respectively, developed vaccines utilizing a previously unapproached method for drug delivery in an incredibly shorter time span compared to traditional vaccine development.",
@@ -951,6 +958,11 @@ const ARTICLES = {
   "lnp-neurology": {
     "title": "LNP’s and Neurology",
     "kicker": "Neuroscience · Article",
+    "authors": [
+      "Shivika Srivastava",
+      "Riddhima Ghosh",
+      "Aadarshini Anand"
+    ],
     "pdf": "articles/lnp-neurology.pdf",
     "paragraphs": [
       "The nervous system is a system of electrochemical signaling. Neurological conditions that develop, disrupt this signaling system and lead to severe and dire consequences for patients. Damage to this system—depending on what condition it is—can originate in tissues, neurons, or proteins (if they are misfolded). Such conditions are even harder to treat because mature neurons cannot divide, so the human body cannot regenerate the neurons that it has lost. Along with this, the neurons are hyper-sensitive to stress and fluctuations in the microenvironment.",
@@ -990,6 +1002,11 @@ const ARTICLES = {
   "covid-cardiovascular": {
     "title": "Covid Vaccine Drug Delivery System’s Effects for Cardiovascular Complications",
     "kicker": "Cardiology · Article",
+    "authors": [
+      "Nitya Anand",
+      "Shriya Raman",
+      "Subhashree Dey Sarkar"
+    ],
     "pdf": "articles/covid-vaccine-cardiovascular.pdf",
     "paragraphs": [
       "## Background and Confliction",
@@ -1012,6 +1029,9 @@ const ARTICLES = {
     ]
   }
 };
+
+// "Jane Doe", "A and B", "A, B, and C"
+const formatNames = (names) => names.length < 3 ? names.join(" and ") : names.slice(0, -1).join(", ") + ", and " + names[names.length - 1];
 
 const PROJECTS = [
   {
@@ -1044,12 +1064,12 @@ const PROJECTS = [
     status: "progress",
     model: "neuron",
     abstract: "BioMation's neuroscience track visualizes the neuron and the signals that travel through it — from dendrite to axon terminal. The long-term goal is a full interactive model of synaptic transmission and simple neural circuits, led by our neurology specialist.",
-    latestUpdate: "Research on synaptic transmission is underway — the first 3D neuron model is in early modeling stages with the CAD team.",
+    wip: true,
+    latestUpdate: "This project is still a work in progress. Our team is researching and building its models and simulations, so check back soon. In the meantime, you can read our article below or explore our active project.",
     articles: [
       { title: ARTICLES["lnp-neurology"].title, type: "Article", articleId: "lnp-neurology" },
     ],
     newsletters: [
-      { title: ARTICLES["covid-vaccines"].title, type: "Cell Biology", articleId: "covid-vaccines" },
       { title: ARTICLES["covid-cardiovascular"].title, type: "Cardiology", articleId: "covid-cardiovascular" },
     ],
   },
@@ -1063,12 +1083,12 @@ const PROJECTS = [
     status: "progress",
     model: "heart",
     abstract: "This project builds toward a fully interactive human heart — chambers, valves, and the electrical conduction system that keeps it beating. Our cardiology specialist is leading research that will anchor the CAD team's 3D model and future animations of blood flow.",
-    latestUpdate: "Research on the cardiac conduction system is wrapping up — chambers and valves are being blocked out next for the 3D model.",
+    wip: true,
+    latestUpdate: "This project is still a work in progress. Our team is researching and building its models and simulations, so check back soon. In the meantime, you can read our article below or explore our active project.",
     articles: [
       { title: ARTICLES["covid-cardiovascular"].title, type: "Article", articleId: "covid-cardiovascular" },
     ],
     newsletters: [
-      { title: ARTICLES["covid-vaccines"].title, type: "Cell Biology", articleId: "covid-vaccines" },
       { title: ARTICLES["lnp-neurology"].title, type: "Neuroscience", articleId: "lnp-neurology" },
     ],
   },
@@ -1528,7 +1548,7 @@ function Footer(){
       </div>
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} BioMation. A student-led initiative.</span>
-        <span>Built by the BioMation Software Dev Team</span>
+        <span>Built by the BioMation Software Dev Team: Vaishnavi Kalyanashetty, Sanshray Vakkalagadda, and Anirudh J Yadrami</span>
       </div>
     </footer>
   );
@@ -1799,6 +1819,7 @@ function ArticleModal({ article, onClose }){
           <div className="ah-text">
             <div className="ah-kicker">{article.kicker}</div>
             <h3>{article.title}</h3>
+            {article.authors && <div className="ah-by">By {formatNames(article.authors)}</div>}
           </div>
           <a className="btn-sm" href={article.pdf} target="_blank" rel="noopener noreferrer">Open full page ↗</a>
           <button type="button" className="btn-sm btn-close" onClick={onClose} autoFocus>Close ✕</button>
@@ -1862,8 +1883,13 @@ function ProjectExpanded({ project, onClose }){
           )}
         </div>
         <div className="summary-card">
-          <h4>Latest Project Summary</h4>
-          <EditableText id={"project-" + project.slug + "-latest"} as="p" html={project.latestUpdate || "No recent updates yet — check back soon."} />
+          <h4>{project.wip ? "🚧 Work in Progress" : "Latest Project Summary"}</h4>
+          <EditableText id={"project-" + project.slug + (project.wip ? "-wip" : "-latest")} as="p" html={project.latestUpdate || "No recent updates yet — check back soon."} />
+          {project.wip && (
+            <a href="#/projects/cell-biology" className="btn btn-primary" style={{ marginTop: 16, width: "100%", textAlign: "center", display: "inline-block" }}>
+              🧬 Explore our active project: Cell Biology →
+            </a>
+          )}
           {project.simulationUrl && (
             <div style={{ marginTop: 16 }}>
               <a href={project.simulationUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ width: "100%", textAlign: "center", display: "inline-block" }}>
@@ -1876,7 +1902,7 @@ function ProjectExpanded({ project, onClose }){
             return (
               <button type="button" key={a.articleId} className="article-tile" onClick={() => setOpenArticle(art)}>
                 <span className="at-ico">📄</span>
-                <span><span className="at-kicker">Read the article</span><span className="at-title">{art.title}</span></span>
+                <span><span className="at-kicker">Read the article</span><span className="at-title">{art.title}</span>{art.authors && <span className="at-by">By {formatNames(art.authors)}</span>}</span>
                 <span className="at-go">→</span>
               </button>
             );
