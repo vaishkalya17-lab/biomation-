@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>BioMation — Visualizing Biology</title>
+<link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/logo.png">
 <meta name="description" content="BioMation translates advanced biological research into interactive digital experiences." />
 
 <!-- React 18 -->
@@ -75,6 +77,11 @@
     display:flex;align-items:center;justify-content:space-between;
   }
   .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:22px;color:var(--navy);}
+  .brand-logo{height:38px;width:auto;display:block;}
+  .brand-logo-badge{background:#fff;border-radius:12px;padding:5px 7px;display:inline-flex;}
+  .brand-logo-badge .brand-logo{height:34px;}
+  .contact-logo-badge{display:inline-flex;background:#fff;border-radius:18px;padding:12px 16px;margin-bottom:20px;box-shadow:0 10px 24px -12px rgba(0,0,0,0.5);}
+  .contact-logo{height:64px;width:auto;display:block;}
   .brand .dot{
     width:12px;height:12px;border-radius:50%;
     background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));
@@ -1337,7 +1344,7 @@ function Header(){
   return (
     <header className={"site" + (scrolled ? " scrolled" : "")}>
       <div className="nav-inner">
-        <a href="#/" className="brand"><span className="dot"></span>BioMation</a>
+        <a href="#/" className="brand"><img src="images/logo.png" alt="" className="brand-logo" />BioMation</a>
         <nav className={"links" + (open ? " open" : "")}>
           {NAV.map(item => (
             <a key={item.path} href={item.path} className={isActive(item.path) ? "active" : ""} onClick={() => setOpen(false)}>{item.label}</a>
@@ -1354,7 +1361,7 @@ function Footer(){
     <footer>
       <div className="footer-inner">
         <div>
-          <a href="#/" className="brand" style={{color:"#fff", marginBottom:14, display:"inline-flex"}}><span className="dot"></span>BioMation</a>
+          <a href="#/" className="brand" style={{color:"#fff", marginBottom:14, display:"inline-flex"}}><span className="brand-logo-badge"><img src="images/logo.png" alt="" className="brand-logo" /></span>BioMation</a>
           <p style={{color:"#a9bfe8", fontSize:14, lineHeight:1.7, marginTop:14, maxWidth:280}}>
             Translating advanced biological research into interactive, educational, and professional digital experiences.
           </p>
@@ -1799,6 +1806,7 @@ function Contact(){
         <div className="container">
           <div className="contact-grid">
             <div className="contact-info-card fade-up">
+              <span className="contact-logo-badge"><img src="images/logo.png" alt="BioMation logo" className="contact-logo" /></span>
               <h3>Get in touch</h3>
               <p>We love hearing from educators, students, and fellow builders.</p>
               <div className="contact-row">
