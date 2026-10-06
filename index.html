@@ -1646,7 +1646,7 @@ function ProjectExpanded({ project, onClose }){
       <button type="button" className="back-to-projects" onClick={onClose}>← Back to Projects</button>
 
       <span className={"project-status " + (project.status === "active" ? "status-active" : "status-progress")}>{project.status === "active" ? "Active Project" : "In Progress"}</span>
-      </div>
+      <h2 style={{ margin: "14px 0 16px" }}>{project.title}</h2>
 
       <EditableText id={"project-" + project.slug + "-abstract"} as="p" className="abstract" html={project.abstract} style={{ maxWidth: 820, marginBottom: 32 }} />
 
