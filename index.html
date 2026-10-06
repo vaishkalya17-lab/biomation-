@@ -506,6 +506,22 @@
     display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);
     border-radius:14px;padding:12px 16px;transition:all .25s ease;
   }
+  .clickable{cursor:pointer;}
+  .clickable:focus-visible{outline:3px solid var(--blue);outline-offset:3px;}
+  .member-modal{position:fixed;inset:0;z-index:1000;background:rgba(8,18,40,0.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;}
+  .member-panel{position:relative;background:#fff;width:min(560px,100%);max-height:92vh;overflow-y:auto;border-radius:24px;box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);}
+  .member-close{position:absolute;top:14px;right:14px;z-index:2;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.9);color:var(--navy);font-size:18px;font-weight:700;cursor:pointer;}
+  .member-close:hover{background:#fff;}
+  .member-hero{height:170px;position:relative;}
+  .member-big-photo{position:absolute;left:50%;bottom:-100px;transform:translateX(-50%);width:220px;height:220px;border-radius:50%;overflow:hidden;border:6px solid #fff;box-shadow:0 14px 34px -14px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;}
+  .member-big-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .member-big-photo span{color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:72px;}
+  .member-info{padding:118px 32px 34px;text-align:center;}
+  .member-info h3{font-size:30px;color:var(--navy);margin:0 0 12px;line-height:1.2;}
+  .member-team-badge{display:inline-block;color:#fff;font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;padding:7px 16px;border-radius:999px;}
+  .member-modal-role{margin-top:14px;font-weight:700;color:var(--blue-deep);font-size:16px;}
+  .member-info p{margin:12px auto 0;max-width:440px;color:var(--text-soft);font-size:15.5px;line-height:1.7;}
+  @media (max-width:640px){.member-big-photo{width:180px;height:180px;bottom:-80px;}.member-info{padding-top:98px;}.member-info h3{font-size:25px;}}
   .full-team-card:hover{border-color:var(--blue);box-shadow:var(--shadow);transform:translateY(-2px);}
   .ft-name{font-weight:600;font-size:14px;color:var(--navy);}
   .ft-team{font-size:11.5px;font-weight:700;letter-spacing:.03em;}
@@ -1727,7 +1743,56 @@ function FoundersSection(){
   );
 }
 
+const TEAM_NAMES = { Technology: "Tech Team", Research: "Research Team", "Social Media": "Social Media Team" };
+const GROUP_TEAM = { tech: "Technology", research: "Research", outreach: "Social Media" };
+
+// Lead info (role, bio) for anyone listed as a lead, looked up by full name.
+function leadInfo(name){
+  for(const [key, g] of Object.entries(TEAM)){
+    const m = g.members.find(x => x.name === name);
+    if(m) return { ...m, team: GROUP_TEAM[key] };
+  }
+  return null;
+}
+
+function MemberModal({ member, onClose }){
+  useEffect(() => {
+    const onKey = (e) => { if(e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+  const lead = leadInfo(member.name);
+  const team = member.team || (lead && lead.team);
+  const photo = member.photo || (lead && lead.photo);
+  const photoBg = member.photoBg || (lead && lead.photoBg);
+  const color = teamColor(team);
+  return ReactDOM.createPortal(
+    <div className="member-modal" onClick={onClose} role="dialog" aria-modal="true" aria-label={member.name}>
+      <div className="member-panel" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="member-close" onClick={onClose} autoFocus aria-label="Close">✕</button>
+        <div className="member-hero" style={{ background: `linear-gradient(135deg, ${colorFor(member.name)}, ${color})` }}>
+          <div className="member-big-photo" style={{ background: photo ? (photoBg || "#fff") : `linear-gradient(135deg, ${color}, ${colorFor(member.name)})` }}>
+            {photo ? <img src={photo} alt={member.name} /> : <span>{initials(member.name)}</span>}
+          </div>
+        </div>
+        <div className="member-info">
+          <h3>{member.name}</h3>
+          <span className="member-team-badge" style={{ background: color }}>{TEAM_NAMES[team] || team}</span>
+          {lead && <div className="member-modal-role">{lead.role}</div>}
+          {lead && lead.bio && <p>{lead.bio}</p>}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function FullTeamGrid(){
+  const { editMode } = useEditMode();
+  const [open, setOpen] = useState(null);
+  const close = useCallback(() => setOpen(null), []);
   return (
     <section style={{ paddingTop: 20 }}>
       <div className="container">
@@ -1737,7 +1802,10 @@ function FullTeamGrid(){
         </div>
         <div className="full-team-grid">
           {FULL_TEAM.map((m, i) => (
-            <div className="full-team-card fade-up" key={m.name + i} style={{ borderLeft: `5px solid ${teamColor(m.team)}` }}>
+            <div className={"full-team-card fade-up" + (editMode ? "" : " clickable")} key={m.name + i} style={{ borderLeft: `5px solid ${teamColor(m.team)}` }}
+              role={editMode ? undefined : "button"} tabIndex={editMode ? undefined : 0}
+              onClick={() => { if(!editMode) setOpen(m); }}
+              onKeyDown={(e) => { if(!editMode && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); setOpen(m); } }}>
               <Avatar editKey={"fullteam-" + i + "-photo"} name={m.name} size={52} gradientFrom={teamColor(m.team)} gradientTo={colorFor(m.name)} fallbackInitials={initials(m.name)} photo={m.photo} photoBg={m.photoBg} />
               <div>
                 <EditableText id={"fullteam-" + i + "-name"} as="div" className="ft-name" html={m.name} />
@@ -1747,6 +1815,7 @@ function FullTeamGrid(){
           ))}
         </div>
       </div>
+      {open && <MemberModal member={open} onClose={close} />}
     </section>
   );
 }
@@ -1755,6 +1824,9 @@ function Team(){
   useReveal();
   const [activeGroup, setActiveGroup] = useState("tech");
   const group = TEAM[activeGroup];
+  const { editMode } = useEditMode();
+  const [openMember, setOpenMember] = useState(null);
+  const closeMember = useCallback(() => setOpenMember(null), []);
   return (
     <div className="page-enter">
       <section style={{paddingTop:64, paddingBottom:36, background:"linear-gradient(180deg, var(--blue-pale), #fff)"}}>
@@ -1783,7 +1855,10 @@ function Team(){
           <p className="team-group-desc">{group.blurb}</p>
           <div className="team-grid">
             {group.members.map(m => (
-              <div className="member-card fade-up" key={m.name}>
+              <div className={"member-card fade-up" + (editMode ? "" : " clickable")} key={m.name}
+                role={editMode ? undefined : "button"} tabIndex={editMode ? undefined : 0}
+                onClick={() => { if(!editMode) setOpenMember({ ...m, team: GROUP_TEAM[activeGroup] }); }}
+                onKeyDown={(e) => { if(!editMode && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); setOpenMember({ ...m, team: GROUP_TEAM[activeGroup] }); } }}>
                 <div className="member-photo" style={{background: `linear-gradient(135deg, ${colorFor(m.name)}, ${group.color})`, height:150}}>
                   <Avatar editKey={"lead-" + m.name.replace(/\s+/g,"-") + "-photo"} name={m.name} size={92} gradientFrom={colorFor(m.name)} gradientTo={group.color} fallbackInitials={initials(m.name)} photo={m.photo} photoBg={m.photoBg} />
                 </div>
@@ -1800,6 +1875,7 @@ function Team(){
       </section>
 
       <FullTeamGrid />
+      {openMember && <MemberModal member={openMember} onClose={closeMember} />}
     </div>
   );
 }
