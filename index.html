@@ -323,6 +323,37 @@
     background:var(--ice);border:1px solid var(--line);border-radius:24px;padding:30px;
     display:flex;flex-direction:column;justify-content:center;
   }
+  .article-tile{
+    display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:14px 16px;text-align:left;cursor:pointer;
+    background:#fff;border:1px solid var(--line);border-radius:14px;font:inherit;color:var(--navy);
+    transition:border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .article-tile:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 10px 24px -14px rgba(13,59,140,0.35);}
+  .article-tile .at-ico{font-size:24px;flex:none;}
+  .article-tile .at-kicker{display:block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:3px;}
+  .article-tile .at-title{display:block;font-weight:700;font-size:14.5px;line-height:1.35;}
+  .article-tile .at-go{margin-left:auto;font-weight:700;color:var(--blue-deep);flex:none;}
+  .article-link{background:none;border:none;padding:0;font:inherit;color:var(--blue-deep);font-weight:600;cursor:pointer;text-align:left;text-decoration:underline;text-underline-offset:3px;}
+  .article-modal{position:fixed;inset:0;z-index:1000;background:rgba(8,18,40,0.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;}
+  .article-panel{background:#fff;width:min(880px,100%);height:min(88vh,1000px);border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px -20px rgba(0,0,0,0.5);}
+  .article-head{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--line);flex:none;}
+  .article-head .ah-text{min-width:0;margin-right:auto;}
+  .article-head .ah-kicker{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-deep);}
+  .article-head h3{font-size:18px;color:var(--navy);margin:2px 0 0;line-height:1.3;}
+  .article-head .btn-sm{flex:none;font-family:inherit;font-size:13.5px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--navy);cursor:pointer;text-decoration:none;white-space:nowrap;}
+  .article-head .btn-sm:hover{border-color:var(--blue);}
+  .article-head .btn-close{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .article-body{overflow-y:auto;padding:28px 36px 40px;color:#23324a;font-size:16.5px;line-height:1.8;}
+  .article-body p{margin:0 0 18px;}
+  .article-body h4{color:var(--navy);font-size:15px;letter-spacing:.04em;text-transform:uppercase;margin:30px 0 12px;}
+  .article-body ol{padding-left:20px;font-size:13.5px;line-height:1.6;color:#4a5a73;}
+  .article-body ol li{margin-bottom:10px;overflow-wrap:anywhere;}
+  @media (max-width:640px){
+    .article-modal{padding:0;}
+    .article-panel{height:100%;border-radius:0;}
+    .article-head{padding:12px 14px;flex-wrap:wrap;}
+    .article-body{padding:20px 18px 32px;font-size:16px;}
+  }
   .summary-card h4{color:var(--navy);font-size:16px;margin-bottom:10px;}
   .summary-card p{color:var(--text-soft);font-size:15px;line-height:1.7;}
   .sub-card{background:var(--ice);border:1px solid var(--line);border-radius:18px;padding:26px;}
@@ -884,6 +915,39 @@ const TEAM = {
   }
 };
 
+// Full-text articles shown in the in-page reader. "pdf" is the original file opened by "Open full page".
+const ARTICLES = {
+  "covid-vaccines": {
+    "title": "COVID-19 Vaccines: How mRNA and Lipid Nanoparticles Work",
+    "kicker": "Cell Biology · Article",
+    "pdf": "articles/covid-vaccines-cell-bio.pdf",
+    "paragraphs": [
+      "The Severe Acute Respiratory Syndrome Coronavirus 2 (SARS-CoV-2) responsible for the Covid-19 pandemic marked a period of revolutionary synthetic and biochemical innovation due to its intense efforts to develop a vaccine. The two notable vaccines: Comirnaty and SpikeVax developed by Pfizer-BioNTech and Moderna, respectively, developed vaccines utilizing a previously unapproached method for drug delivery in an incredibly shorter time span compared to traditional vaccine development.",
+      "SARS-CoV-2 possesses a large RNA genome, with a total of 67% of it being ORF1a and ORF1b, which encodes for polyproteins that are processed into 16 nonstructural proteins involved in viral replication.RdRp is responsible for synthesizing viral RNA, which occurs inside double-membrane vesicles (DMVs), which are also sites of RNA protection from the host’s immune system. The nucleocapsid protein plays a role in organizing and binding viral RNA into complexes and assembly of the new virions that are released.",
+      "While the primary targets of SARS-CoV-2 are the epithelial cells of the respiratory tract, this virus can infect other organs including heart, kidney, vascular tissues, and nervous system. Viral replication can lead to death of cells. Additionally, the infection hinders the functioning of the first line of immune defense by inhibiting the type I interferon signaling pathway. The Nsp1, ORF6, and ORF8 proteins impair host cell function and evade the immune response.",
+      "SARS-CoV-2 is successful due to having a large genome, rapid replication, evading the host immunity, and adaptability. The proofreading system of the virus ensures that the large genome does not get damaged; however, replication errors and recombination may result in mutations. The mutation along with immune pressure from the host results in new variations of the virus. Subgenomic RNAs are synthesized by the virus for the production of viral proteins required for the infection and replication.",
+      "The technology utilized to address this disease are Lipid Nanoparticles. Lipid Nanoparticles or LNPs are small particle delivery vehicles ranging in size from 50-200 nM diameter. Their small size makes them suitable candidates for drug delivery, specifically genetic material payloads. As their name suggests, these particles are particles with a complex internal lipid structure that packages and protects the mRNA . Utilizing 4 different types of lipids: Cationic/Ionizable, cholesterol, a helper lipid, and a polyethylene glycol (PEG) polymers with a lipid anchor. Each of these are instrumental in the particle stability as well as the delivery of the drug. The primary component out of these 4 is the cationic/ionizable lipid. These lipids interact with the RNA that it delivers and is heavily involved in the actual transfection, the delivery of nucleic acids into a cell. The major distinction that ionizable lipids have is its ability to remain a positive charge at acidic pH, which is essential for RNA to bind and get packaged within the LNP due to their anionic charge. However at physiological pHs (around 7.35-7.45), these lipids lose their cationic identity making it far less cytotoxic while also further facilitating membrane fusion and the eventual release of the cargo into the cell’s cytosol.",
+      "Transfection or Endosomal Escape describes the process by which the LNP enters the cell and successfully delivers the payload before lysosomes degrade the material. The first step of this process involves the LNP entering the cell through endocytosis where the positive charge of the particle attracts to the anionic cell and endosome membrane. At this point, the pH drops rapidly as the endosome experiences maturation, the process in which the cell recognizes foreign bodies and tries to eliminate them. Electrostatic interactions between the cationic LNP and the anionic endosome membrane result in swelling and eventually destabilization of its membrane. Destabilization of the endosomal membrane allows some of the mRNA to escape into the cytoplasm.",
+      "But what exactly does the vaccine deliver? Well, the vaccine is an mRNA vaccine. Contrary to popular belief, the vaccine does not actually deliver the virus. Instead LNPs deliver a specially engineered mRNA that codes for the spike protein. This mRNA is read through the cell’s ribosome resulting in the cell producing these proteins themselves. T-cells, a part of our immune system, use these proteins as a training model giving them the ability to recognize the virus in the case of infection.",
+      "An important part when developing an LNP is understanding how the mRNA and the lipids actually interact, factors that can drastically affect the stability and efficacy of the vehicle.",
+      "However, just as important in its role in supporting the LNP, the structural components and engineering behind the mRNA are foundational in determining whether the vaccine actually works and if the spike protein will actually be replicated and synthesized within the cell. This mRNA has 5 essential structural components: a 5’ cap, 5’ untranslated region (5’ UTR), Open Reading Frame (ORF), a 3’ Untranslated Region (3’ UTR), and a Poly(A) tail. The 5’ cap is located at the 5’ end of the mRNA and mimics the endogenous eukaryotic mRNA. It’s responsible for protecting mRNA from 5’ exonuclease degradation, the process in which an enzyme removes nucleotides on this end; increasing translation efficiency and intracellular stability; and reduces immune receptor recognition. The 5’ UTR does not code for any proteins but is imperative in regulating translation initiation and mRNA stability. The ORF is the protein-coding region of the mRNA encoding the entire length of the SARS-CoV-2 spike glycoprotein. The 3’ UTR is another non-coding region following the ORF interacting with RNA binding proteins and improving translation efficiency. The last part of the mRNA structure is the Poly(A) tail located after the 3’ UTR. Just like the 5’ cap it protects against exonuclease degradation and promotes translation efficiency but also forms a closed-loop mRNA structure with the cap-binding proteins. This is absolutely critical in ensuring that the spike protein is repetitively synthesized.",
+      "Generally, mRNA vaccines reveal synergy between innovations in molecular biology and drug delivery techniques in order to achieve an effective immune response. Lipid Nanoparticles not only preserve mRNA but also enable its delivery into the cell, while mRNA serves as the source code for synthesis of the SARS-CoV-2 spike protein. In turn, the immune system can respond to spike protein after its production without contact with the actual virus. All components of mRNA vaccine from ionized lipids to the 5` cap, UTRs, coding sequence, and Poly(A) tail-ensure the stability, delivery, and translation of mRNA. The use of mRNA vaccines has become crucial during the COVID-19 outbreak as it proved that mRNA vaccines are a versatile platform for the creation and manufacture of vaccines against novel viral variants and infectious diseases."
+    ],
+    "citations": [
+      "Chaudhary, N., Weissman, D., & Whitehead, K. A. (2021). mRNA vaccines for infectious diseases: principles, delivery and clinical translation. Nature Reviews Drug Discovery, 20(11), 817–838. https://doi.org/10.1038/s41573-021-00283-5",
+      "Decroly, E., Ferron, F., Lescar, J., & Canard, B. (2012). Conventional and unconventional mechanisms for capping viral mRNA. Nature Reviews Microbiology, 10(1), 51–65. https://doi.org/10.1038/nrmicro2675",
+      "Haque, M. A., Shrestha, A., Mikelis, C. M., & Mattheolabakis, G. (2024). Comprehensive analysis of lipid nanoparticle formulation and preparation for RNA delivery. International Journal of Pharmaceutics: X, 8, Article 100283. https://doi.org/10.1016/j.ijpx.2024.100283",
+      "Mingaleeva RN, Nigmatulina NA, Sharafetdinova LM, Romozanova AM, Gabdoulkhakova AG, Filina YV, Shavaliyev RF, Rizvanov AA, Miftakhova RR. Biology of the SARS-CoV-2 Coronavirus. Biochemistry (Mosc). 2022 Dec;87(12):1662-1678. https://doi.org/10.1134/S0006297922120215",
+      "Pardi, N., Hogan, M. J., Porter, F. W., & Weissman, D. (2018). mRNA vaccines - a new era in vaccinology. Nature reviews. Drug discovery, 17(4), 261–279. https://doi.org/10.1038/nrd.2017.243",
+      "Schoenmaker, L., Witzigmann, D., Kulkarni, J. A., Verbeke, R., Kersten, G., Jiskoot, W., & Crommelin, D. J. A. (2021). mRNA-lipid nanoparticle COVID-19 vaccines: Structure and stability. International Journal of Pharmaceutics, 601, 120586. https://doi.org/10.1016/j.ijpharm.2021.120586",
+      "Steiner, S., Kratzel, A., Barut, G. T., Lang, R. M., Aguiar Moreira, E., Thomann, L., Kelly, J. N., & Thiel, V. (2024). SARS-CoV-2 biology and host interactions. Nature reviews. Microbiology, 22(4), 206–225. https://doi.org/10.1038/s41579-023-01003-z",
+      "V’kovski, P., Kratzel, A., Steiner, S. et al. Coronavirus biology and replication: implications for SARS-CoV-2. Nat Rev Microbiol 19, 155–170 (2021). https://doi.org/10.1038/s41579-020-00468-6",
+      "Zhang, J., Liu, Y., Li, C., Xiao, Q., Zhang, D., Chen, Y., Rosenecker, J., Ding, X., & Guan, S. (2023). Recent Advances and Innovations in the Preparation and Purification of In Vitro-Transcribed-mRNA-Based Molecules. Pharmaceutics, 15(9), 2182. https://doi.org/10.3390/pharmaceutics15092182",
+      "Zhang, L., More, K. R., Ojha, A., Jackson, C. B., Quinlan, B. D., Li, H., He, W., Farzan, M., Pardi, N., & Choe, H. (2023). Effect of mRNA-LNP components of two globally-marketed COVID-19 vaccines on efficacy and stability. NPJ vaccines, 8(1), 156. https://doi.org/10.1038/s41541-023-00751-6"
+    ]
+  }
+};
+
 const PROJECTS = [
   {
     slug: "cell-biology",
@@ -898,8 +962,7 @@ const PROJECTS = [
     abstract: "An interactive exploration of the cell as a living system — from the fluid mosaic of the membrane to the machinery of the mitochondria. This project translates core cell biology into a rotatable 3D model, letting students explore organelle structure and function the way they'd explore a building's floor plan.",
     latestUpdate: "Our team wanted to investigate a biological phenomenon that has impacted the entire world as a whole, including the younger generation. Our studies led us to researching the biological mechanism behind SARS-CoV-2, the virus that causes COVID-19, which was responsible for the deaths of over 7.1 million people and one that disrupted young people’s schooling and social lives. The rapid development of COVID-19 vaccines was another major turning point in the pandemic, making the first widespread use of mRNA vaccines with lipid nanoparticle delivery technology. Our articles and models demonstrate how exactly the mRNA vaccines work and the underlying biological mechanisms that make these vaccines effective.",
     articles: [
-      { title: "The Fluid Mosaic Model, Revisited", type: "Doc" },
-      { title: "How Mitochondria Power the Cell", type: "Doc" },
+      { title: ARTICLES["covid-vaccines"].title, type: "Article", articleId: "covid-vaccines" },
     ],
     newsletters: [
       { title: "BioMation Digest — Launch Issue", type: "Newsletter" },
@@ -1645,7 +1708,45 @@ function ModelSourceControlWrap({ projectSlug }){
   );
 }
 
+function ArticleModal({ article, onClose }){
+  useEffect(() => {
+    const onKey = (e) => { if(e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+  }, [onClose]);
+  const linkify = (text) => text.split(/(https?:\/\/\S+)/g).map((part, i) =>
+    /^https?:\/\//.test(part) ? <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a> : part);
+  return ReactDOM.createPortal(
+    <div className="article-modal" onClick={onClose} role="dialog" aria-modal="true" aria-label={article.title}>
+      <div className="article-panel" onClick={(e) => e.stopPropagation()}>
+        <div className="article-head">
+          <div className="ah-text">
+            <div className="ah-kicker">{article.kicker}</div>
+            <h3>{article.title}</h3>
+          </div>
+          <a className="btn-sm" href={article.pdf} target="_blank" rel="noopener noreferrer">Open full page ↗</a>
+          <button type="button" className="btn-sm btn-close" onClick={onClose} autoFocus>Close ✕</button>
+        </div>
+        <div className="article-body">
+          {article.paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+          {article.citations.length > 0 && (
+            <React.Fragment>
+              <h4>Citations</h4>
+              <ol>{article.citations.map((c, i) => <li key={i}>{linkify(c)}</li>)}</ol>
+            </React.Fragment>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function ProjectExpanded({ project, onClose }){
+  const [openArticle, setOpenArticle] = useState(null);
+  const closeArticle = React.useCallback(() => setOpenArticle(null), []);
   useEffect(() => { window.scrollTo(0, 0); }, [project.slug]);
 
   return (
@@ -1696,6 +1797,16 @@ function ProjectExpanded({ project, onClose }){
               </a>
             </div>
           )}
+          {project.articles.filter(a => a.articleId).map(a => {
+            const art = ARTICLES[a.articleId];
+            return (
+              <button type="button" key={a.articleId} className="article-tile" onClick={() => setOpenArticle(art)}>
+                <span className="at-ico">📄</span>
+                <span><span className="at-kicker">Read the article</span><span className="at-title">{art.title}</span></span>
+                <span className="at-go">→</span>
+              </button>
+            );
+          })}
         </div>
       </div>
       {project.simulationUrl && (
@@ -1710,7 +1821,7 @@ function ProjectExpanded({ project, onClose }){
         <div className="sub-card fade-up">
           <h4>📄 Articles <span className="count">{project.articles.length}</span></h4>
           {project.articles.length > 0 ? (
-            <ul>{project.articles.map(a => <li key={a.title}>{a.title}<span className="pill">{a.type}</span></li>)}</ul>
+            <ul>{project.articles.map(a => <li key={a.title}>{a.articleId ? <button type="button" className="article-link" onClick={() => setOpenArticle(ARTICLES[a.articleId])}>{a.title}</button> : a.title}<span className="pill">{a.type}</span></li>)}</ul>
           ) : <div className="empty">No articles published yet — check back soon.</div>}
           <FileListSection storageKey={"project-" + project.slug + "-articles"} emptyLabel="No uploaded articles yet." />
         </div>
@@ -1722,6 +1833,7 @@ function ProjectExpanded({ project, onClose }){
           <FileListSection storageKey={"project-" + project.slug + "-newsletters"} emptyLabel="No links added yet." />
         </div>
       </div>
+      {openArticle && <ArticleModal article={openArticle} onClose={closeArticle} />}
     </div>
   );
 }
