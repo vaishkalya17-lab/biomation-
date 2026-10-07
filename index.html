@@ -100,9 +100,9 @@
     nav.links{
       position:fixed;top:64px;left:0;right:0;bottom:0;
       flex-direction:column;background:#fff;padding:24px;gap:8px;
-      transform:translateX(100%);transition:transform .35s ease;
+      transform:translateX(100%);transition:transform .35s ease, visibility 0s linear .35s;visibility:hidden;
     }
-    nav.links.open{transform:translateX(0);}
+    nav.links.open{transform:translateX(0);visibility:visible;transition:transform .35s ease, visibility 0s;}
     nav.links a{width:100%;text-align:center;padding:14px;font-size:17px;}
     .mobile-toggle{display:block;}
   }
@@ -285,6 +285,7 @@
   .status-progress{background:#fff3de;color:#b9770e;}
   .project-hero h2{font-size:clamp(30px,4vw,44px);color:var(--navy);margin-bottom:16px;}
   .project-hero .abstract{color:var(--text-soft);font-size:16px;line-height:1.75;margin-bottom:24px;}
+  .project-expanded .abstract{color:var(--text-soft);font-size:16px;line-height:1.75;}
   .field-badges{display:flex;gap:8px;flex-wrap:wrap;}
   .field-badge{background:var(--blue-pale);color:var(--blue-deep);font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:999px;}
 
@@ -576,6 +577,37 @@
   .et-btn.active{background:linear-gradient(135deg,var(--blue-bright),var(--blue-deep));}
   .et-btn.danger:hover{background:#ff5c7c;}
   .et-hint{color:#a9bfe8;font-size:12.5px;padding:0 4px;}
+
+  /* ---------- Phones ---------- */
+  .footer-inner > div{min-width:0;}
+  .footer-inner ul a{overflow-wrap:anywhere;}
+  @media (max-width:600px){
+    section{padding:56px 18px;}
+    .section-head{margin-bottom:32px;}
+    .nav-inner{padding:12px 18px;}
+    .brand{font-size:20px;}
+    .brand-logo{height:34px;}
+    .hero{min-height:0;}
+    .hero-inner{padding:44px 18px 40px;gap:28px;}
+    .hero p.lead{font-size:16px;margin-bottom:26px;}
+    .cta-row .btn{flex:1 1 auto;justify-content:center;}
+    .hero-visual{height:280px;}
+    .founders-card{padding:24px 20px;gap:22px;margin-bottom:40px;}
+    .team-tabs{flex-wrap:nowrap;overflow-x:auto;margin:0 -18px 28px;padding:2px 18px;scrollbar-width:none;}
+    .team-tabs::-webkit-scrollbar{display:none;}
+    .team-tab{flex:none;}
+    .summary-card{padding:22px 20px;}
+    .sub-card{padding:18px;}
+    .project-hero{gap:20px;}
+    .project-expanded .viewer-badge{display:none;}
+    .project-hero.hero-sim .viewer-wrap a.btn-ghost{display:none;}
+    .fullscreen-note{font-size:13.5px;padding:12px 14px;}
+    .back-to-projects{margin-bottom:16px;margin-right:12px;}
+    .contact-logo{height:52px;}
+    footer{padding:44px 18px 26px;}
+    .footer-inner{gap:28px 20px;}
+    .footer-bottom{flex-direction:column;align-items:flex-start;gap:10px;}
+  }
 </style>
 </head>
 <body>
@@ -685,6 +717,8 @@ function FileListSection({ storageKey, emptyLabel = "Nothing uploaded yet." }){
   };
 
   const onRemove = (i) => { removeFileAt(storageKey, i); refresh(); };
+
+  if(!editMode && files.length === 0) return null; // nothing to show visitors
 
   return (
     <React.Fragment>
