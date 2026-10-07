@@ -282,6 +282,14 @@
     background:var(--blue-pale);border:1px solid var(--line);border-radius:14px;
     padding:12px 18px;margin:0 0 40px;color:var(--blue-deep);font-size:14.5px;
   }
+  .first-project-note{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:space-between;margin-top:8px;
+    background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:18px;padding:20px 24px;box-shadow:var(--shadow);}
+  .first-project-note > div{flex:1 1 320px;min-width:0;}
+  .first-project-note .fpn-kicker{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:6px;}
+  .first-project-note p{color:var(--text-soft);font-size:15.5px;line-height:1.65;margin:0;}
+  .first-project-note p b{color:var(--navy);}
+  @media (max-width:600px){.first-project-note{padding:18px;}.first-project-note .btn{width:100%;justify-content:center;}}
+  .fullscreen-note .note-link{background:none;border:none;padding:0;font:inherit;color:var(--blue-deep);font-weight:700;cursor:pointer;white-space:nowrap;}
   .fullscreen-note a{color:var(--blue-deep);font-weight:700;white-space:nowrap;}
   .project-status{
     display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;
@@ -606,7 +614,7 @@
     .sub-card{padding:18px;}
     .project-hero{gap:20px;}
     .project-expanded .viewer-badge{display:none;}
-    .project-hero.hero-sim .viewer-wrap a.btn-ghost{display:none;}
+    .project-hero.hero-sim .sim-fs-btn{top:8px !important;right:8px !important;padding:5px 10px !important;font-size:11.5px !important;}
     .fullscreen-note{font-size:13.5px;padding:12px 14px;}
     .back-to-projects{margin-bottom:16px;margin-right:12px;}
     .contact-logo{height:52px;}
@@ -1962,7 +1970,45 @@ function ArticleModal({ article, onClose }){
   );
 }
 
+// Put the embedded simulation into real fullscreen (landscape on phones). Browsers
+// without element fullscreen (e.g. iPhone Safari) open it in a new tab instead.
+function launchSimulation(url){
+  const frame = document.querySelector("iframe.sim-frame");
+  const req = frame && (frame.requestFullscreen || frame.webkitRequestFullscreen);
+  if(!req){ window.open(url, "_blank", "noopener"); return; }
+  Promise.resolve(req.call(frame)).then(() => {
+    try { const o = screen.orientation; if(o && o.lock) o.lock("landscape").catch(() => {}); } catch(e){}
+  }).catch(() => window.open(url, "_blank", "noopener"));
+}
+
+// Tell the simulation when it enters/leaves fullscreen, and handle its "exit" request.
+function useSimFullscreenBridge(){
+  useEffect(() => {
+    const frameEl = () => document.querySelector("iframe.sim-frame");
+    const onChange = () => {
+      const f = frameEl(); if(!f || !f.contentWindow) return;
+      const on = (document.fullscreenElement || document.webkitFullscreenElement) === f;
+      f.contentWindow.postMessage({ type: "bm-fullscreen", on }, "*");
+      if(!on){ try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch(e){} }
+    };
+    const onMsg = (e) => {
+      if(e.data && e.data.type === "bm-exit-fullscreen" && (document.fullscreenElement || document.webkitFullscreenElement)){
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      }
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("webkitfullscreenchange", onChange);
+    window.addEventListener("message", onMsg);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("webkitfullscreenchange", onChange);
+      window.removeEventListener("message", onMsg);
+    };
+  }, []);
+}
+
 function ProjectExpanded({ project, onClose }){
+  useSimFullscreenBridge();
   const [openArticle, setOpenArticle] = useState(null);
   const closeArticle = React.useCallback(() => setOpenArticle(null), []);
   useEffect(() => { window.scrollTo(0, 0); }, [project.slug]);
@@ -1982,19 +2028,21 @@ function ProjectExpanded({ project, onClose }){
           {project.simulationUrl ? (
             <div style={{ width: "100%", height: "100%", borderRadius: 12, overflow: "hidden", position: "relative" }}>
               <iframe
+                className="sim-frame"
+                allow="fullscreen"
+                allowFullScreen
                 src={project.simulationUrl}
                 title={project.title + " Interactive Simulation"}
                 style={{ width: "100%", height: "100%", border: "none" }}
               />
-              <a
-                href={project.simulationUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-ghost"
+              <button
+                type="button"
+                onClick={() => launchSimulation(project.simulationUrl)}
+                className="btn btn-ghost sim-fs-btn"
                 style={{ position: "absolute", top: 12, right: 12, background: "rgba(10,20,30,0.85)", color: "#fff", fontSize: 12, padding: "6px 12px", zIndex: 10 }}
               >
-                Open Fullscreen ↗
-              </a>
+                ⛶ Fullscreen
+              </button>
             </div>
           ) : project.cover ? (
             <img src={project.cover} alt={project.title} style={{ width: "100%", height: 420, objectFit: "cover", borderRadius: 12, display: "block" }} />
@@ -2015,9 +2063,9 @@ function ProjectExpanded({ project, onClose }){
           )}
           {project.simulationUrl && (
             <div style={{ marginTop: 16 }}>
-              <a href={project.simulationUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ width: "100%", textAlign: "center", display: "inline-block" }}>
+              <button type="button" onClick={() => launchSimulation(project.simulationUrl)} className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }}>
                 🚀 Launch Full Simulation →
-              </a>
+              </button>
             </div>
           )}
           {(project.wip ? project.newsletters : project.articles).filter(a => a.articleId).map(a => {
@@ -2035,7 +2083,7 @@ function ProjectExpanded({ project, onClose }){
       {project.simulationUrl && (
         <div className="fullscreen-note">
           <span>💡 For the best experience, open the model in fullscreen. If you'd like to continue here instead, click “Read about this step ↓” at the bottom of the model window.</span>
-          <a href={project.simulationUrl} target="_blank" rel="noopener noreferrer">Open Fullscreen ↗</a>
+          <button type="button" className="note-link" onClick={() => launchSimulation(project.simulationUrl)}>Open Fullscreen ⛶</button>
         </div>
       )}
       <ModelSourceControlWrap projectSlug={project.slug} />
@@ -2081,6 +2129,15 @@ function Projects({ initialSlug }){
             <h2>Every project starts as data. It becomes a model.</h2>
             <p>Click a project to open it — the other two will step aside. Click Close (or the project again) to bring them back.</p>
           </div>
+          {openSlug !== "cell-biology" && (
+            <div className="first-project-note fade-up in">
+              <div>
+                <div className="fpn-kicker">🧬 Our first project</div>
+                <p><b>The mRNA Vaccine Journey</b> in Cell Biology: an interactive 3D simulation that follows a COVID-19 mRNA vaccine from the injection to lasting immunity, backed by our team's research articles.</p>
+              </div>
+              <a href="#/projects/cell-biology" className="btn btn-primary">Explore Cell Biology →</a>
+            </div>
+          )}
         </div>
       </section>
       <section style={{paddingTop:20}}>

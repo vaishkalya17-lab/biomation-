@@ -73,6 +73,14 @@ details.note p{margin-top:6px}
 .credits dd{margin:0;color:var(--fg);font-size:13px}
 .credits b{font-weight:700}
 .credits-btn{height:30px;font-size:12px}
+.top-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.top-btn{height:30px;font-size:12px;text-decoration:none}
+.btn.only-fs{display:none}
+html.embedded .btn.only-tab{display:none}
+html.fs .btn.only-fs{display:inline-flex}
+html.fs .btn.only-tab{display:none}
+html.page-fs #tabFsBtn{display:none}
+html.page-fs #exitFsBtn{display:inline-flex}
 .model-credit{position:absolute;top:40px;left:16px;z-index:4;max-width:min(440px,calc(100% - 140px));pointer-events:none;
   background:color-mix(in srgb,var(--panel) 90%,transparent);border:1px solid var(--line);border-radius:10px;padding:7px 11px;
   backdrop-filter:blur(4px);font-size:12px;line-height:1.45;color:var(--fg);transition:opacity .25s}
@@ -179,6 +187,12 @@ html.in-intro aside.card,html.in-intro .fs-tip,html.in-intro .scroll-cue,html.in
   <header>
     <div class="brand"><h1>mRNA Vaccine Journey</h1><span>Biomation · interactive</span></div>
     <button class="btn credits-btn" id="creditsBtn" type="button">Credits</button>
+    <div class="top-actions">
+      <a class="btn top-btn only-tab" id="backBtn" href="./#/projects/cell-biology">← Back to project</a>
+      <button class="btn top-btn only-tab" id="tabFsBtn" type="button">⛶ Fullscreen</button>
+      <button class="btn top-btn only-fs" id="newTabBtn" type="button">Open in new tab ↗</button>
+      <button class="btn top-btn only-fs" id="exitFsBtn" type="button">Exit fullscreen ✕</button>
+    </div>
   </header>
   <main>
     <div class="viewport" id="viewport">
@@ -1070,6 +1084,30 @@ function endIntro() {
   t = reduced ? 1 : 0; playing = !reduced; setPlayIcon(); resize();
 }
 $('#introNext').onclick = endIntro;
+
+// Fullscreen: either the website puts this frame in fullscreen (it tells us via
+// postMessage), or this page is open in its own tab and goes fullscreen itself.
+const startedEmbedded = document.documentElement.classList.contains('embedded');
+function setFs(on) {
+  const root = document.documentElement;
+  root.classList.toggle('fs', on);
+  if (startedEmbedded) root.classList.toggle('embedded', !on);
+  resize();
+}
+addEventListener('message', e => { if (e.data && e.data.type === 'bm-fullscreen') setFs(!!e.data.on); });
+const lockLandscape = () => { try { screen.orientation.lock('landscape').catch(() => {}); } catch (e) {} };
+$('#newTabBtn').onclick = () => window.open(location.href.split('#')[0] + '#stage-' + (cur + 1), '_blank', 'noopener');
+$('#exitFsBtn').onclick = () => {
+  if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  else parent.postMessage({ type: 'bm-exit-fullscreen' }, '*');
+};
+$('#tabFsBtn').onclick = () => {
+  const el = document.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) Promise.resolve(req.call(el)).then(lockLandscape).catch(() => {});
+};
+const onPageFs = () => document.documentElement.classList.toggle('page-fs', !!(document.fullscreenElement || document.webkitFullscreenElement));
+document.addEventListener('fullscreenchange', onPageFs); document.addEventListener('webkitfullscreenchange', onPageFs);
+if (!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen)) $('#tabFsBtn').style.display = 'none';
 $('#creditsBtn').onclick = () => { const d = $('#credits'); d.open = true; d.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' }); };
 $('#introReplay').onclick = () => { const v = $('#introVideo'); v.currentTime = 0; v.play().catch(() => {}); };
 if (startAt === 0) {
