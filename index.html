@@ -276,7 +276,7 @@
   @media (max-width:900px){.project-hero{grid-template-columns:1fr;}}
   .project-hero.hero-sim{grid-template-columns:2.2fr 1fr;gap:28px;align-items:stretch;}
   .project-hero.hero-sim .viewer-wrap{height:600px;}
-  @media (max-width:900px){.project-hero.hero-sim{grid-template-columns:1fr;}.project-hero.hero-sim .viewer-wrap{height:460px;}}
+  @media (max-width:900px){.project-hero.hero-sim{grid-template-columns:1fr;}.project-hero.hero-sim .viewer-wrap{height:min(640px,82vh);}}
   .fullscreen-note{
     display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
     background:var(--blue-pale);border:1px solid var(--line);border-radius:14px;
@@ -2082,7 +2082,7 @@ function ProjectExpanded({ project, onClose }){
       </div>
       {project.simulationUrl && (
         <div className="fullscreen-note">
-          <span>💡 For the best experience, open the model in fullscreen. If you'd like to continue here instead, click “Read about this step ↓” at the bottom of the model window.</span>
+          <span>💡 For the best experience, open the simulation in fullscreen. You can also explore it right here: the explanation for each step is next to the model.</span>
           <button type="button" className="note-link" onClick={() => launchSimulation(project.simulationUrl)}>Open Fullscreen ⛶</button>
         </div>
       )}
@@ -2127,7 +2127,6 @@ function Projects({ initialSlug }){
           <div className="section-head fade-up">
             <div className="kicker">Projects</div>
             <h2>Every project starts as data. It becomes a model.</h2>
-            <p>Click a project to open it — the other two will step aside. Click Close (or the project again) to bring them back.</p>
           </div>
           {openSlug !== "cell-biology" && (
             <div className="first-project-note fade-up in">

@@ -170,6 +170,66 @@ html.in-intro aside.card,html.in-intro .fs-tip,html.in-intro .scroll-cue,html.in
   margin:16px 16px 0;padding:10px 14px;border:1px solid var(--accent);border-radius:10px;
   background:color-mix(in srgb,var(--accent) 12%,var(--panel));font-size:13.5px}
 .fs-tip a{color:var(--accent);font-weight:700;white-space:nowrap}
+
+/* ---- Split layout: model and explanation share the screen, no page scrolling ----
+   Side by side (model 2/3, explanation 1/3) inside the website and on phones held
+   sideways; stacked (model on top) on phones held upright. */
+html.embedded,html.embedded body{height:100%}
+html.embedded .app{height:100%;min-height:0}
+html.embedded main{flex-direction:row}
+html.embedded .viewport{flex:2 1 0;height:auto;min-height:0}
+html.embedded aside.card{position:static;flex:1 1 0;width:auto;max-width:none;max-height:none;margin:0;min-width:0;min-height:0;overflow:hidden;
+  border:0;border-left:1px solid var(--line);border-radius:0;box-shadow:none}
+html.embedded .card .body{overflow-y:auto;flex:1;min-height:0;padding:14px 14px 10px}
+html.embedded .card h2{font-size:20px}
+html.embedded #text p{font-size:14px}
+html.embedded .transport{border-radius:0;padding:8px 10px;gap:6px}
+html.embedded .fs-tip,html.embedded .scroll-cue{display:none!important}
+@media (max-height:540px) and (orientation:landscape){
+  html,body{height:100%}
+  .app{height:100%;min-height:0}
+  main{flex-direction:row}
+  .viewport{flex:2 1 0;height:auto;min-height:0}
+  aside.card{position:static;flex:1 1 0;width:auto;max-width:none;max-height:none;margin:0;min-width:0;min-height:0;overflow:hidden;
+    border:0;border-left:1px solid var(--line);border-radius:0;box-shadow:none}
+  .card .body{overflow-y:auto;flex:1;min-height:0;padding:10px 12px 8px;gap:6px}
+  .card h2{font-size:17px}
+  #text p{font-size:13px}
+  .transport{border-radius:0;padding:6px 8px;gap:6px}
+  .transport .btn{height:30px}
+  header{padding:6px 12px}
+  .brand h1{font-size:15px}
+  .brand span{display:none}
+  .rail{top:6px}
+  .hint{display:none}
+  .model-credit{top:30px;font-size:11px;padding:5px 9px}
+  .fs-tip,.scroll-cue{display:none!important}
+}
+@media (max-width:560px){
+  header{flex-wrap:nowrap;gap:8px;padding:8px 10px}
+  .brand{min-width:0}
+  .brand h1{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .credits-btn,.top-btn{height:28px;font-size:11.5px;padding:0 9px}
+  .top-actions{gap:6px;flex-wrap:nowrap}
+  .top-btn .lbl{display:none}
+  html.embedded .model-credit{font-size:10.5px;padding:5px 8px;max-width:calc(100% - 120px)}
+  html.embedded header{padding-right:112px}
+  html.embedded .mini .btn{height:26px;width:26px}
+}
+@media (max-width:560px) and (orientation:portrait){
+  html.embedded,html.embedded body,html,body{height:100%}
+  html.embedded .app,.app{height:100%;min-height:0}
+  html.embedded main,main{flex-direction:column}
+  html.embedded .viewport,.viewport{flex:0 0 60%;height:auto;min-height:0}
+  html.embedded aside.card,aside.card{position:static;flex:1 1 0;width:auto;max-width:none;max-height:none;margin:0;min-width:0;min-height:0;overflow:hidden;
+    border:0;border-top:1px solid var(--line);border-radius:0;box-shadow:none}
+  html.embedded .card .body,.card .body{overflow-y:auto;flex:1;min-height:0;padding:12px 14px 8px;gap:6px}
+  html.embedded .card h2,.card h2{font-size:18px}
+  html.embedded #text p,#text p{font-size:14px}
+  html.embedded .transport,.transport{border-radius:0;padding:6px 8px;gap:6px}
+  .fs-tip,.scroll-cue{display:none!important}
+  .hint{display:none}
+}
 </style>
 <script>try{if(window.self!==window.top)document.documentElement.classList.add('embedded')}catch(e){document.documentElement.classList.add('embedded')}</script>
 
@@ -188,10 +248,10 @@ html.in-intro aside.card,html.in-intro .fs-tip,html.in-intro .scroll-cue,html.in
     <div class="brand"><h1>mRNA Vaccine Journey</h1><span>Biomation · interactive</span></div>
     <button class="btn credits-btn" id="creditsBtn" type="button">Credits</button>
     <div class="top-actions">
-      <a class="btn top-btn only-tab" id="backBtn" href="./#/projects/cell-biology">← Back to project</a>
-      <button class="btn top-btn only-tab" id="tabFsBtn" type="button">⛶ Fullscreen</button>
-      <button class="btn top-btn only-fs" id="newTabBtn" type="button">Open in new tab ↗</button>
-      <button class="btn top-btn only-fs" id="exitFsBtn" type="button">Exit fullscreen ✕</button>
+      <a class="btn top-btn only-tab" id="backBtn" href="./#/projects/cell-biology">← Back<span class="lbl"> to project</span></a>
+      <button class="btn top-btn only-tab" id="tabFsBtn" type="button" aria-label="Fullscreen">⛶<span class="lbl"> Fullscreen</span></button>
+      <button class="btn top-btn only-fs" id="newTabBtn" type="button" aria-label="Open in new tab"><span class="lbl">Open in new tab </span>↗</button>
+      <button class="btn top-btn only-fs" id="exitFsBtn" type="button" aria-label="Exit fullscreen"><span class="lbl">Exit fullscreen </span>✕</button>
     </div>
   </header>
   <main>
