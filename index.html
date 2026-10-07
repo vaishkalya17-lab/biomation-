@@ -71,6 +71,7 @@
     border-bottom:1px solid var(--line);
     transition:box-shadow .3s ease;
   }
+  header.site.menu-open{background:#fff;}
   header.site.scrolled{box-shadow:0 6px 24px -12px rgba(13,59,140,0.18);}
   .nav-inner{
     max-width:1240px;margin:0 auto;padding:16px 32px;
@@ -97,13 +98,18 @@
   .mobile-toggle{display:none;background:none;border:none;font-size:24px;color:var(--navy);cursor:pointer;}
 
   @media (max-width:860px){
+    /* The header's backdrop blur makes it the containing block for this fixed panel,
+       so size the panel explicitly from the header's bottom edge. */
     nav.links{
-      position:fixed;top:64px;left:0;right:0;bottom:0;
-      flex-direction:column;background:#fff;padding:24px;gap:8px;
+      position:absolute;top:100%;left:0;right:0;height:100vh;height:100dvh;overflow-y:auto;
+      flex-direction:column;background:#fff;padding:20px 18px 120px;gap:10px;
+      border-top:1px solid var(--line);
       transform:translateX(100%);transition:transform .35s ease, visibility 0s linear .35s;visibility:hidden;
     }
     nav.links.open{transform:translateX(0);visibility:visible;transition:transform .35s ease, visibility 0s;}
-    nav.links a{width:100%;text-align:center;padding:14px;font-size:17px;}
+    nav.links a{width:100%;text-align:center;padding:15px;font-size:17px;font-weight:600;border-radius:14px;
+      background:var(--ice);border:1px solid var(--line);color:var(--navy);}
+    nav.links a.active{border-color:transparent;}
     .mobile-toggle{display:block;}
   }
 
@@ -1102,12 +1108,10 @@ const PROJECTS = [
     model: "neuron",
     abstract: "BioMation's neuroscience track visualizes the neuron and the signals that travel through it — from dendrite to axon terminal. The long-term goal is a full interactive model of synaptic transmission and simple neural circuits, led by our neurology specialist.",
     wip: true,
-    latestUpdate: "This project is still a work in progress. Our team is researching and building its models and simulations, so check back soon. In the meantime, you can read our article below or explore our active project.",
-    articles: [
-      { title: ARTICLES["lnp-neurology"].title, type: "Article", articleId: "lnp-neurology" },
-    ],
+    latestUpdate: "This project is still a work in progress. Our team is researching and building its models and simulations, so check back soon. In the meantime, you can read our related article below or explore our active project.",
+    articles: [],
     newsletters: [
-      { title: ARTICLES["covid-cardiovascular"].title, type: "Cardiology", articleId: "covid-cardiovascular" },
+      { title: ARTICLES["lnp-neurology"].title, type: "Neuroscience", articleId: "lnp-neurology" },
     ],
   },
   {
@@ -1121,12 +1125,10 @@ const PROJECTS = [
     model: "heart",
     abstract: "This project builds toward a fully interactive human heart — chambers, valves, and the electrical conduction system that keeps it beating. Our cardiology specialist is leading research that will anchor the CAD team's 3D model and future animations of blood flow.",
     wip: true,
-    latestUpdate: "This project is still a work in progress. Our team is researching and building its models and simulations, so check back soon. In the meantime, you can read our article below or explore our active project.",
-    articles: [
-      { title: ARTICLES["covid-cardiovascular"].title, type: "Article", articleId: "covid-cardiovascular" },
-    ],
+    latestUpdate: "This project is still a work in progress. Our team is researching and building its models and simulations, so check back soon. In the meantime, you can read our related article below or explore our active project.",
+    articles: [],
     newsletters: [
-      { title: ARTICLES["lnp-neurology"].title, type: "Neuroscience", articleId: "lnp-neurology" },
+      { title: ARTICLES["covid-cardiovascular"].title, type: "Cardiology", articleId: "covid-cardiovascular" },
     ],
   },
 ];
@@ -1504,6 +1506,12 @@ function Header(){
   const hash = useHashRoute();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if(!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -1517,7 +1525,7 @@ function Header(){
   };
 
   return (
-    <header className={"site" + (scrolled ? " scrolled" : "")}>
+    <header className={"site" + (scrolled ? " scrolled" : "") + (open ? " menu-open" : "")}>
       <div className="nav-inner">
         <a href="#/" className="brand"><img src="images/logo.png" alt="" className="brand-logo" />BioMation</a>
         <nav className={"links" + (open ? " open" : "")}>
@@ -2012,7 +2020,7 @@ function ProjectExpanded({ project, onClose }){
               </a>
             </div>
           )}
-          {project.articles.filter(a => a.articleId).map(a => {
+          {(project.wip ? project.newsletters : project.articles).filter(a => a.articleId).map(a => {
             const art = ARTICLES[a.articleId];
             return (
               <button type="button" key={a.articleId} className="article-tile" onClick={() => setOpenArticle(art)}>
