@@ -592,6 +592,20 @@
   .et-btn.danger:hover{background:#ff5c7c;}
   .et-hint{color:#a9bfe8;font-size:12.5px;padding:0 4px;}
 
+  /* ---------- Applications ---------- */
+  .apply-banner{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;
+    padding:10px 52px 10px 20px;position:relative;background:linear-gradient(90deg,#123a8a,#2f7dff);color:#fff;font-size:14.5px;text-align:center;}
+  .apply-banner b{font-weight:700;}
+  .apply-banner .ab-btn{background:#fff;color:var(--blue-deep);font-weight:700;font-size:13.5px;padding:7px 16px;border-radius:999px;white-space:nowrap;}
+  .apply-banner .ab-btn:hover{background:var(--blue-pale);}
+  .apply-banner .ab-close{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#fff;font-size:16px;cursor:pointer;opacity:.85;width:32px;height:32px;}
+  .apply-banner .ab-close:hover{opacity:1;}
+  .apply-note{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;max-width:780px;
+    background:#fff;border:1px solid var(--line);border-left:5px solid var(--blue);border-radius:16px;padding:16px 20px;box-shadow:var(--shadow);}
+  .apply-note span{color:var(--text-soft);font-size:15.5px;line-height:1.6;flex:1 1 300px;}
+  .apply-note b{color:var(--navy);}
+  @media (max-width:600px){.apply-banner{font-size:13.5px;padding:10px 44px 10px 14px;gap:8px;}.apply-note .btn{width:100%;justify-content:center;}}
+
   /* ---------- Phones ---------- */
   .footer-inner > div{min-width:0;}
   .footer-inner ul a{overflow-wrap:anywhere;}
@@ -1159,6 +1173,30 @@ const NAV = [
   { path: "#/contact", label: "Contact Us" },
 ];
 
+/* ================= APPLICATIONS ================= */
+// Team applications. Everything below hides itself once the deadline passes.
+const APPLICATIONS = {
+  url: "https://forms.gle/FgmHjumggqymCvYV9",
+  teams: "Research and Tech teams",
+  dueLabel: "Oct 11, 11:59 PM",
+  closesAt: new Date("2026-10-12T06:59:00Z"), // Oct 11, 11:59 PM Pacific
+};
+const applicationsOpen = () => Date.now() < APPLICATIONS.closesAt.getTime();
+
+function ApplyBanner(){
+  const key = "bm-apply-banner-closed-" + APPLICATIONS.closesAt.getTime();
+  const [closed, setClosed] = useState(() => { try { return localStorage.getItem(key) === "1"; } catch(e){ return false; } });
+  if(closed || !applicationsOpen()) return null;
+  const dismiss = () => { setClosed(true); try { localStorage.setItem(key, "1"); } catch(e){} };
+  return (
+    <div className="apply-banner" role="region" aria-label="Applications open">
+      <span className="ab-text">📣 <b>Applications are open</b> for our {APPLICATIONS.teams}! Due <b>{APPLICATIONS.dueLabel}</b>.</span>
+      <a className="ab-btn" href={APPLICATIONS.url} target="_blank" rel="noopener noreferrer">Apply now →</a>
+      <button type="button" className="ab-close" onClick={dismiss} aria-label="Hide this message">✕</button>
+    </div>
+  );
+}
+
 /* ================= ROUTER ================= */
 
 function useHashRoute(){
@@ -1713,9 +1751,13 @@ function About(){
           <div className="section-head fade-up" style={{margin:"0 auto 30px"}}>
             <div className="kicker" style={{justifyContent:"center", color:"#8fb4ff"}}>Get involved</div>
             <h2 style={{color:"#fff"}}>Want to work with us?</h2>
-            <p style={{color:"#c4d5f5"}}>Whether you're a researcher, engineer, designer, or storyteller — there's a place for you at BioMation.</p>
+            <p style={{color:"#c4d5f5"}}>{applicationsOpen()
+              ? <React.Fragment>Applications for our {APPLICATIONS.teams} are open now, due <b style={{color:"#fff"}}>{APPLICATIONS.dueLabel}</b>.</React.Fragment>
+              : "Whether you're a researcher, engineer, designer, or storyteller — there's a place for you at BioMation."}</p>
           </div>
-          <a href="#/contact" className="btn btn-light fade-up">Get in Touch →</a>
+          {applicationsOpen()
+            ? <a href={APPLICATIONS.url} target="_blank" rel="noopener noreferrer" className="btn btn-light fade-up">Apply Now →</a>
+            : <a href="#/contact" className="btn btn-light fade-up">Get in Touch →</a>}
         </div>
       </section>
     </div>
@@ -2241,6 +2283,12 @@ function Contact(){
             <h2>Let's build something together.</h2>
             <p>Questions about a project, interested in joining a team, or want to collaborate? Reach out below.</p>
           </div>
+          {applicationsOpen() && (
+            <div className="apply-note fade-up">
+              <span>🎓 <b>Want to join?</b> Applications for our {APPLICATIONS.teams} are open until {APPLICATIONS.dueLabel}.</span>
+              <a href={APPLICATIONS.url} target="_blank" rel="noopener noreferrer" className="btn btn-primary">Apply now →</a>
+            </div>
+          )}
         </div>
       </section>
       <section style={{paddingTop:0}}>
@@ -2321,7 +2369,7 @@ function App(){
   return (
     <EditModeContext.Provider value={{ editMode, setEditMode }}>
       <Header />
-      <main>{page}</main>
+      <main><ApplyBanner />{page}</main>
       <Footer />
       <MemberModalHost />
       <ToTop />
