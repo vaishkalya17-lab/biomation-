@@ -8,6 +8,7 @@ var TEAM = {
     blurb: "Transforms research into interactive digital formats — 3D CAD models, animations, and coded experiences — and manages the website and its distribution.",
     members: [
       { name: "Vaishnavi Kalyanashetty", role: "Technology Director & Founder", lead:true, bio: "Leads BioMation's technical work and builds much of it hands-on: managing the entire CAD pipeline, designing a large share of the 3D models, and shaping the website itself.", photo: "images/team/vaishnavi-photo.jpg" },
+      { name: "Varun Gadekal", role: "CAD Lead", lead:true, bio: "Leads BioMation's CAD team, guiding how complex biological structures become accurate, detailed 3D models and making sure every model is ready for the team's simulations and animations." },
       { name: "Aashika Kumar", role: "Animation Specialist", bio: "Creates visually engaging animations that turn static research and 3D models into compelling educational content.", photo: "images/team/aashika.png" },
       { name: "Sanshray Vakkalagadda", role: "Software Developer / UI-UX Designer", bio: "Builds the web platforms, interactive apps, and simulations — making sure everything is user-friendly, educational, and visually clean.", photo: "images/team/sanshray.jpg" },
     ]
@@ -36,10 +37,13 @@ var TEAM = {
 
 var FULL_TEAM = [
   { name: "Vaishnavi Kalyanashetty", team: "Technology", photo: "images/team/vaishnavi-photo.jpg" },
+  { name: "Varun Gadekal", subteam: "CAD", team: "Technology" },
   { name: "Sahana Ramkumar", role: "CAD Modeler", subteam: "CAD", blurb: "Builds detailed 3D CAD models of biological structures for BioMation’s simulations and animations.", team: "Technology", photo: "images/team/sahana.png" },
   { name: "Aashika Kumar", team: "Technology", photo: "images/team/aashika.png" },
   { name: "Sanshray Vakkalagadda", subteam: "Software Dev", team: "Technology", photo: "images/team/sanshray.jpg" },
   { name: "Anirudh J Yadrami", role: "Software Developer", subteam: "Software Dev", blurb: "Helps design and build the BioMation website and its interactive simulations.", team: "Technology", photo: "images/team/Anirudh.JPG.jpeg" },
+  { name: "Saina Nara", role: "Software Developer", subteam: "Software Dev", blurb: "Helps design and build the BioMation website and the interactive tools that bring the team’s research to life.", team: "Technology" },
+  { name: "Alayna Thomas", role: "Software Developer", subteam: "Software Dev", blurb: "Builds features for the BioMation website and helps turn the team’s 3D models and research into interactive experiences online.", team: "Technology" },
   { name: "Gagana Muralidhar", team: "Research", photo: "images/team/gagana.jpeg" },
   { name: "Shivika Srivastava", team: "Research", photo: "images/team/shivika.jpg" },
   { name: "Riddhima Ghosh", role: "Neuroscience Researcher", blurb: "Researches the nervous system and turns neuroscience findings into clear, accurate content for BioMation’s projects.", team: "Research", photo: "images/team/riddhima.png" },

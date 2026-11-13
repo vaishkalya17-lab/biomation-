@@ -1668,7 +1668,7 @@ function Home(){
       <div className="stats-strip">
         <div className="stat"><div className="stat-num">3</div><div className="stat-label">Core Teams</div></div>
         <div className="stat"><div className="stat-num">3</div><div className="stat-label">Active Project Tracks</div></div>
-        <div className="stat"><div className="stat-num">20</div><div className="stat-label">Team Members</div></div>
+        <div className="stat"><div className="stat-num">{FULL_TEAM.length}</div><div className="stat-label">Team Members</div></div>
       </div>
 
       <section>
@@ -1885,7 +1885,7 @@ function FullTeamGrid(){
       <div className="container">
         <div className="section-head fade-up">
           <div className="kicker">Meet the Full Team</div>
-          <h2>18 people, one mission.</h2>
+          <h2>{FULL_TEAM.length} people, one mission.</h2>
         </div>
         <div className="full-team-grid">
           {FULL_TEAM.map((m, i) => (
