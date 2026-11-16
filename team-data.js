@@ -42,7 +42,7 @@ var FULL_TEAM = [
   { name: "Aashika Kumar", team: "Technology", photo: "images/team/aashika.png" },
   { name: "Sanshray Vakkalagadda", team: "Technology", photo: "images/team/sanshray.jpg" },
   { name: "Anirudh J Yadrami", role: "Software Developer", blurb: "Has built much of the BioMation website’s backend, creating the systems that keep the site running smoothly behind the scenes, and contributes to the team’s interactive simulations.", team: "Technology", photo: "images/team/Anirudh.JPG.jpeg" },
-  { name: "Saina Nara", role: "Software Developer", blurb: "Helps build and maintain the BioMation website.", team: "Technology" },
+  { name: "Saina Nara", role: "Software Developer", blurb: "Helps build and maintain the BioMation website.", team: "Technology", photo: "images/team/saina_image.jpg" },
   { name: "Alayna Thomas", role: "Software Developer", blurb: "Helps build and maintain the BioMation website.", team: "Technology" },
   { name: "Gagana Muralidhar", team: "Research", photo: "images/team/gagana.jpeg" },
   { name: "Shivika Srivastava", team: "Research", photo: "images/team/shivika.jpg" },
